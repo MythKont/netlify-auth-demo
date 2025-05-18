@@ -41,7 +41,6 @@ exports.handler = async (event) => {
       return { statusCode: 400, body: "Bu kullanıcı zaten kayıtlı." };
     }
 
-<<<<<<< HEAD
     // Başlangıç bakiyesi: 1000
     await users.insertOne({
       email,
@@ -49,9 +48,6 @@ exports.handler = async (event) => {
       password,
       balance: 1000,
     });
-=======
-    await users.insertOne({ email, username, password });
->>>>>>> 94b2bd20c09f0f7eadbf732b3b2466e5cbfaf871
 
     return { statusCode: 200, body: "Kayıt başarılı." };
   } catch (err) {
