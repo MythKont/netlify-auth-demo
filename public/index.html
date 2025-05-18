@@ -27,6 +27,7 @@
 
       const res = await fetch("/.netlify/functions/register", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, username, password }),
       });
 
@@ -40,17 +41,15 @@
 
       const res = await fetch("/.netlify/functions/login", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ identifier, password }),
       });
 
       const text = await res.text();
       if (res.status === 200) {
-<<<<<<< HEAD
         // GİRİŞ BAŞARILI → localStorage'a kullanıcı adı olarak identifier'ı yaz
         localStorage.setItem("username", identifier);
 
-=======
->>>>>>> 94b2bd20c09f0f7eadbf732b3b2466e5cbfaf871
         document.getElementById("msg").innerText = "Giriş başarılı! Yönlendiriliyorsunuz...";
         setTimeout(() => {
           window.location.href = "/dashboard.html";
