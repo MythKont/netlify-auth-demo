@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Yazı Tura Oyunu</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 30px;
+      background: #121212;
+      color: white;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 18px;
+      margin: 10px;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background: #00ffae;
+      color: black;
+    }
+    #game {
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Yazı Tura</h1>
+  <p id="status">Rakip bekleniyor...</p>
+  <p>Bakiye: <span id="balance">Yükleniyor...</span></p>
+
+  <div id="game" style="display:none;">
+    <p>Seçimini yap:</p>
+    <button onclick="makeChoice('yazı')">Yazı</button>
+    <button onclick="makeChoice('tura')">Tura</button>
+  </div>
+
+  <p id="result" style="font-size: 20px; margin-top: 20px;"></p>
+
+  <script>
+    const username = localStorage.getItem("username");
+    if (!username) {
+      window.location.href = "/";
+    }
+
+    async function fetchBalance() {
+      const res = await fetch(`/.netlify/functions/play?type=balance&username=${username}`);
+      const data = await res.json();
+      document.getElementById("balance").innerText = data.balance;
+    }
+
+    async function joinGame() {
+      document.getElementById("status").innerText = "Rakip bekleniyor...";
+      const res = await fetch("/.netlify/functions/play", {
+        method: "POST",
+        body: JSON.stringify({ type: "join", username }),
+      });
+
+      const data = await res.json();
+
+      if (data.status === "ready") {
+        document.getElementById("game").style.display = "block";
+        document.getElementById("status").innerText = "Rakibin geldi. Seçim yap!";
+      } else {
+        setTimeout(joinGame, 3000);
+      }
+    }
+
+    async function makeChoice(choice) {
+      const res = await fetch("/.netlify/functions/play", {
+        method: "POST",
+        body: JSON.stringify({ type: "choice", username, choice }),
+      });
+
+      const data = await res.json();
+      document.getElementById("result").innerText = data.message;
+      fetchBalance();
+    }
+
+    // Başlat
+    fetchBalance();
+    joinGame();
+  </script>
+</body>
+</html>
