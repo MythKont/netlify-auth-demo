@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Giriş / Kayıt</title>
+</head>
+<body>
+  <h2>Kayıt Ol</h2>
+  <input id="reg-email" placeholder="Email" />
+  <input id="reg-username" placeholder="Kullanıcı Adı" />
+  <input id="reg-password" type="password" placeholder="Şifre" />
+  <button onclick="register()">Kayıt Ol</button>
+
+  <h2>Giriş Yap</h2>
+  <input id="log-identifier" placeholder="Email veya Kullanıcı Adı" />
+  <input id="log-password" type="password" placeholder="Şifre" />
+  <button onclick="login()">Giriş Yap</button>
+
+  <p id="msg"></p>
+
+  <script>
+    async function register() {
+      const email = document.getElementById("reg-email").value.trim();
+      const username = document.getElementById("reg-username").value.trim();
+      const password = document.getElementById("reg-password").value.trim();
+
+      const res = await fetch("/.netlify/functions/register", {
+        method: "POST",
+        body: JSON.stringify({ email, username, password }),
+      });
+
+      const text = await res.text();
+      document.getElementById("msg").innerText = text;
+    }
+
+    async function login() {
+      const identifier = document.getElementById("log-identifier").value.trim();
+      const password = document.getElementById("log-password").value.trim();
+
+      const res = await fetch("/.netlify/functions/login", {
+        method: "POST",
+        body: JSON.stringify({ identifier, password }),
+      });
+
+      const text = await res.text();
+      if (res.status === 200) {
+        document.getElementById("msg").innerText = "Giriş başarılı! Yönlendiriliyorsunuz...";
+        setTimeout(() => {
+          window.location.href = "/dashboard.html";
+        }, 1000);
+      } else {
+        document.getElementById("msg").innerText = text;
+      }
+    }
+  </script>
+</body>
+</html>
