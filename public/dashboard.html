@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Yazı Tura Oyunu</title>
   <style>
     body {
@@ -80,9 +80,15 @@
       const data = await res.json();
       document.getElementById("result").innerText = data.message;
       fetchBalance();
+      if (data.message.includes("kazandı") || data.message.includes("Beraberlik")) {
+        setTimeout(() => {
+          document.getElementById("result").innerText = "";
+          document.getElementById("game").style.display = "none";
+          joinGame();
+        }, 5000);
+      }
     }
 
-    // Başlat
     fetchBalance();
     joinGame();
   </script>

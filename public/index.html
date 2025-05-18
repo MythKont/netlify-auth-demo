@@ -17,13 +17,18 @@
   <input id="log-password" type="password" placeholder="Şifre" />
   <button onclick="login()">Giriş Yap</button>
 
-  <p id="msg"></p>
+  <p id="msg" style="color: red;"></p>
 
   <script>
     async function register() {
       const email = document.getElementById("reg-email").value.trim();
       const username = document.getElementById("reg-username").value.trim();
       const password = document.getElementById("reg-password").value.trim();
+
+      if (!email || !username || !password) {
+        document.getElementById("msg").innerText = "Lütfen tüm alanları doldurun.";
+        return;
+      }
 
       const res = await fetch("/.netlify/functions/register", {
         method: "POST",
@@ -39,6 +44,11 @@
       const identifier = document.getElementById("log-identifier").value.trim();
       const password = document.getElementById("log-password").value.trim();
 
+      if (!identifier || !password) {
+        document.getElementById("msg").innerText = "Lütfen tüm alanları doldurun.";
+        return;
+      }
+
       const res = await fetch("/.netlify/functions/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -46,15 +56,16 @@
       });
 
       const text = await res.text();
-      if (res.status === 200) {
-        // GİRİŞ BAŞARILI → localStorage'a kullanıcı adı olarak identifier'ı yaz
-        localStorage.setItem("username", identifier);
 
+      if (res.status === 200) {
+        localStorage.setItem("username", identifier);
+        document.getElementById("msg").style.color = "green";
         document.getElementById("msg").innerText = "Giriş başarılı! Yönlendiriliyorsunuz...";
         setTimeout(() => {
           window.location.href = "/dashboard.html";
         }, 1000);
       } else {
+        document.getElementById("msg").style.color = "red";
         document.getElementById("msg").innerText = text;
       }
     }
