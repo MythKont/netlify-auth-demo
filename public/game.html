@@ -1,112 +1,89 @@
+<!-- game.html -->
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Oyun Odası</title>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Oyun</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
       background: #121212;
       color: white;
-      text-align: center;
-      padding: 20px;
-    }
-    button {
-      padding: 12px 24px;
-      margin: 10px;
-      font-size: 18px;
-      cursor: pointer;
-      border: none;
-      border-radius: 8px;
-      background: #00ffae;
-      color: black;
-    }
-    #players {
-      margin: 20px 0;
-      font-size: 20px;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
     }
     #countdown {
-      font-size: 36px;
-      margin: 20px 0;
-      color: #00ffae;
+      font-size: 48px;
+      font-weight: bold;
+      margin: 20px;
     }
     #result {
-      margin-top: 30px;
-      font-size: 24px;
+      font-size: 40px;
+      font-weight: bold;
+      margin: 20px;
+    }
+    #names {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 12px 30px;
+      font-size: 20px;
+      background-color: #00ffae;
+      color: black;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <h1>Oyun Odası</h1>
-  <div id="players">
-    <p>Kendiniz: <span id="player-name">...</span></p>
-    <p>Rakip: <span id="opponent-name">Rakip bekleniyor...</span></p>
-  </div>
-
-  <p>Bahis: <span id="bet-amount">0</span></p>
-  <p>Seçiminiz: <span id="your-choice">Henüz seçilmedi</span></p>
-  
-  <div id="choice-buttons">
-    <button onclick="makeChoice('yazı')">Yazı</button>
-    <button onclick="makeChoice('tura')">Tura</button>
-  </div>
-
+  <div id="names">Yükleniyor...</div>
   <div id="countdown"></div>
   <div id="result"></div>
-
-  <button onclick="exitGame()">Oyundan Çık</button>
+  <button onclick="exitGame()">Çıkış</button>
 
   <script>
+    const params = new URLSearchParams(location.search);
+    const roomId = params.get("roomId");
     const username = localStorage.getItem("username");
-    if (!username) {
-      window.location.href = "/";
+    if (!username) location.href = "/";
+
+    let room = null, countdownInt, countdownStarted = false;
+
+    async function loadRoom() {
+      const r = await fetch("/.netlify/functions/play", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({type:"getRoom",roomId})
+      });
+      if (r.status !== 200) {
+        alert("Oda bulunamadı.");
+        return location.href = "/dashboard.html";
+      }
+      room = await r.json();
+      render();
     }
 
-    let room = null;
-    let countdownInt;
-    let countdownStarted = false;
-    let hasChosen = false;
+    function render() {
+      document.getElementById("names").innerHTML = `
+        Sen: <strong>${username}</strong> — Rakip: <strong>${
+          room.player1 === username ? room.player2 || "Bekleniyor..." : room.player1
+        }</strong>
+      `;
 
-    async function fetchRoom() {
-      try {
-        const res = await fetch(`/.netlify/functions/play?type=room&username=${username}`);
-        const data = await res.json();
-
-        if (!data.room) {
-          alert("Oda bulunamadı veya oda kapatıldı.");
-          window.location.href = "/dashboard.html";
-          return;
-        }
-
-        room = data.room;
-        document.getElementById("bet-amount").innerText = room.bet;
-        document.getElementById("player-name").innerText = username;
-
-        // Oyuncular isimlerini göster, rakip ismi doğru gözüksün
-        if (room.player1 === username) {
-          document.getElementById("opponent-name").innerText = room.player2 ?? "Rakip bekleniyor...";
-        } else {
-          document.getElementById("opponent-name").innerText = room.player1 ?? "Rakip bekleniyor...";
-        }
-
-        // Eğer her iki oyuncu da varsa ve oyun başlamadıysa, sayaç başlat
-        if (room.player1 && room.player2 && !countdownStarted) {
-          startCountdown(room.startTime);
-        }
-
-      } catch (e) {
-        console.error(e);
+      if (room.status === "ready" && !countdownStarted) {
+        startCountdown();
       }
     }
 
-    function startCountdown(startTime) {
+    function startCountdown() {
+      clearInterval(countdownInt);
       countdownStarted = true;
-      hasChosen = false;
-      document.getElementById("result").innerText = "";
-      document.getElementById("your-choice").innerText = "Henüz seçilmedi";
-      const end = startTime + 10000;
-
+      const end = room.startTime + 10000; // 10 saniye
       countdownInt = setInterval(() => {
         const left = Math.max(0, Math.ceil((end - Date.now()) / 1000));
         document.getElementById("countdown").innerText = `Başlıyor: ${left}s`;
@@ -114,99 +91,37 @@
         if (left === 0) {
           clearInterval(countdownInt);
           countdownStarted = false;
-          playResult();
+          showResult();
         }
       }, 250);
     }
 
-    async function makeChoice(choice) {
-      if (countdownStarted && hasChosen) {
-        alert("Zaten seçim yaptınız.");
-        return;
-      }
-      if (!countdownStarted) {
-        alert("Sayaç başlamadan seçim yapamazsınız.");
-        return;
-      }
-
-      try {
-        const res = await fetch("/.netlify/functions/play", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type: "choice", username, choice }),
-        });
-        const data = await res.json();
-
-        if (res.status !== 200) {
-          alert(data.message || "Bir hata oluştu.");
-          return;
-        }
-
-        document.getElementById("your-choice").innerText = choice;
-        hasChosen = true;
-      } catch (e) {
-        console.error(e);
-      }
+    async function showResult() {
+      const r = await fetch("/.netlify/functions/play", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({type:"getResult",roomId})
+      });
+      const d = await r.json();
+      document.getElementById("result").innerText =
+        `Sonuç: ${d.result.toUpperCase()} — ${d.winner === username ? "Kazandınız!" : "Kaybettiniz!"}`;
     }
 
-    async function playResult() {
-      // Oyun sonucu gösterilecek
-      try {
-        // Tekrar oda bilgisi çekelim sonucu görmek için
-        const res = await fetch(`/.netlify/functions/play?type=room&username=${username}`);
-        const data = await res.json();
-        if (!data.room) {
-          alert("Oda kapatıldı.");
-          window.location.href = "/dashboard.html";
-          return;
-        }
-        room = data.room;
-
-        const coin = Math.random() < 0.5 ? "yazı" : "tura";
-        document.getElementById("countdown").innerText = "";
-        document.getElementById("result").innerText = `Yazı Tura: ${coin}`;
-
-        // Kazananı belirle
-        let winner = null;
-        if (room.choice1 === coin && room.choice2 !== coin) winner = room.player1;
-        else if (room.choice2 === coin && room.choice1 !== coin) winner = room.player2;
-
-        if (winner) {
-          if (winner === username) {
-            document.getElementById("result").innerText += " - Tebrikler, kazandınız!";
-          } else {
-            document.getElementById("result").innerText += " - Maalesef kaybettiniz.";
-          }
-        } else {
-          document.getElementById("result").innerText += " - Beraberlik!";
-        }
-
-        // 5 saniye sonra dashboarda dön
-        setTimeout(() => {
-          window.location.href = "/dashboard.html";
-        }, 5000);
-
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    async function exitGame() {
+    function exitGame() {
       if (countdownStarted) {
         alert("Oyun başladıktan sonra çıkış yapamazsınız.");
         return;
       }
-      await fetch("/.netlify/functions/play", {
+      fetch("/.netlify/functions/play", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "leave", username }),
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({type:"leave",username})
       });
-      window.location.href = "/dashboard.html";
+      location.href = "/dashboard.html";
     }
 
-    // Sayfayı düzenli aralıklarla yenile oda durumunu güncelle
-    setInterval(fetchRoom, 2000);
-    fetchRoom();
+    loadRoom();
+    setInterval(loadRoom, 5000);
   </script>
 </body>
 </html>
