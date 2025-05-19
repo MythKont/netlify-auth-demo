@@ -1,4 +1,3 @@
-// netlify/functions/play.js
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const uri = process.env.MONGO_URI;
@@ -18,10 +17,6 @@ async function getClient() {
   return client;
 }
 
-function getCurrentTimestamp() {
-  return Date.now();
-}
-
 exports.handler = async (event) => {
   try {
     const client = await getClient();
@@ -30,7 +25,7 @@ exports.handler = async (event) => {
     const rooms = db.collection("rooms");
 
     if (event.httpMethod === "GET") {
-      const { type, username } = event.queryStringParameters || {};
+      const { type, username } = event.queryStringParameters;
 
       if (type === "balance") {
         const user = await users.findOne({ username });
@@ -40,157 +35,195 @@ exports.handler = async (event) => {
         };
       }
 
-      if (type === "rooms") {
-        // Açık olan odaları listele (status waiting ya da ready)
-        const openRooms = await rooms
-          .find({ status: { $in: ["waiting", "ready"] } })
-          .project({ player1: 1, bet: 1, choice: 1, status: 1 })
-          .toArray();
-
+      if (type === "listRooms") {
+        const openRooms = await rooms.find({ player2: null }).toArray();
         return {
           statusCode: 200,
-          body: JSON.stringify(openRooms),
+          body: JSON.stringify(
+            openRooms.map((room) => ({
+              _id: room._id,
+              player1: room.player1,
+              bet: room.bet,
+              choice1: room.choice1,
+            }))
+          ),
         };
       }
     }
 
     if (event.httpMethod === "POST") {
       const body = JSON.parse(event.body);
-      const { type, username, bet, choice, roomId } = body;
+      const { type, username, choice, roomId, bet, pick } = body;
 
-      if (type === "createRoom") {
-        if (!bet || !choice || !username) {
-          return { statusCode: 400, body: "Eksik parametre." };
-        }
-
-        // Kullanıcının yeterli bakiyesi var mı?
-        const user = await users.findOne({ username });
-        if (!user || user.balance < bet) {
-          return { statusCode: 400, body: "Yetersiz bakiye." };
-        }
-
-        // Bahis miktarı kullanıcıdan alınır, oda yazı/tura seçimi de kullanıcı tarafından belirlenir
-        const roomDoc = {
-          player1: username,
-          player2: null,
-          bet,
-          choice, // 'yazı' veya 'tura'
-          status: "waiting", // oyuncu bekleniyor
-          createdAt: getCurrentTimestamp(),
-        };
-
-        const res = await rooms.insertOne(roomDoc);
-
-        return {
-          statusCode: 200,
-          body: JSON.stringify({ message: "Oda oluşturuldu.", roomId: res.insertedId }),
-        };
-      }
-
-      if (type === "joinRoom") {
-        if (!roomId || !username) {
-          return { statusCode: 400, body: "Eksik parametre." };
+      if (type === "join") {
+        // Join existing room by id
+        if (!roomId) {
+          return { statusCode: 400, body: "Oda ID belirtilmeli." };
         }
 
         const room = await rooms.findOne({ _id: new ObjectId(roomId) });
 
         if (!room) {
-          return { statusCode: 404, body: "Oda bulunamadı." };
+          return { statusCode: 404, body: "Böyle bir oda bulunmamakta." };
         }
 
-        if (room.status !== "waiting") {
-          return { statusCode: 400, body: "Oda zaten dolu veya oyun başladı." };
+        if (room.player2) {
+          return { statusCode: 400, body: "Oda dolu." };
         }
 
-        if (room.player1 === username) {
-          return { statusCode: 400, body: "Kendi odana katılamazsın." };
+        // Katılan oyuncunun bakiyesi yeterli mi?
+        const player2 = await users.findOne({ username });
+        if (!player2 || player2.balance < room.bet) {
+          return {
+            statusCode: 400,
+            body: "Yeterli bakiye yok.",
+          };
         }
 
-        const user = await users.findOne({ username });
-        if (!user || user.balance < room.bet) {
-          return { statusCode: 400, body: "Yetersiz bakiye." };
-        }
+        // Katılan oyuncu balance azaltma (rezervasyon)
+        await users.updateOne({ username }, { $inc: { balance: -room.bet } });
 
-        // Odaya katılan oyuncunun bakiyesi tamam, odada player2 olarak ekle
+        // Güncelle odadaki player2
         await rooms.updateOne(
           { _id: room._id },
           {
-            $set: { player2: username, status: "ready", startTime: getCurrentTimestamp() },
+            $set: { player2: username, choice2: null, status: "waiting" },
           }
         );
 
-        return { statusCode: 200, body: JSON.stringify({ message: "Odaya katıldınız." }) };
+        // Oda sahibinin bakiyesi azaltıldı mı? Evet, oda açarken azalacak.
+
+        return {
+          statusCode: 200,
+          body: JSON.stringify({ status: "ready", roomId: room._id.toString() }),
+        };
       }
 
-      if (type === "getRoom") {
-        if (!roomId) {
-          return { statusCode: 400, body: "Eksik parametre." };
+      if (type === "create") {
+        // Oda açma: bahis miktarı ve seçim (yazı/tura) zorunlu
+        if (!bet || !pick) {
+          return { statusCode: 400, body: "Bahis ve seçim gerekli." };
         }
 
-        const room = await rooms.findOne({ _id: new ObjectId(roomId) });
+        const player = await users.findOne({ username });
+        if (!player || player.balance < bet) {
+          return { statusCode: 400, body: "Yeterli bakiye yok." };
+        }
 
-        if (!room) {
-          return { statusCode: 404, body: "Oda bulunamadı." };
+        // Kullanıcının varsa eski odasını sil
+        await rooms.deleteMany({ player1: username });
+
+        // Bakiye rezervasyonu (bahis tutarı)
+        await users.updateOne({ username }, { $inc: { balance: -bet } });
+
+        // Oda oluştur
+        const insertResult = await rooms.insertOne({
+          player1: username,
+          player2: null,
+          choice1: pick,
+          choice2: null,
+          bet,
+          status: "waiting",
+          createdAt: new Date(),
+        });
+
+        return {
+          statusCode: 200,
+          body: JSON.stringify({ status: "waiting", roomId: insertResult.insertedId.toString() }),
+        };
+      }
+
+      if (type === "leave") {
+        // Odayı bul
+        const room = await rooms.findOne({
+          $or: [{ player1: username }, { player2: username }],
+        });
+
+        if (room) {
+          // Odayı sil
+          await rooms.deleteOne({ _id: room._id });
+
+          // Bakiye iadesi (oda sahibi ve varsa katılan)
+          await users.updateOne({ username: room.player1 }, { $inc: { balance: room.bet } });
+          if (room.player2) {
+            await users.updateOne({ username: room.player2 }, { $inc: { balance: room.bet } });
+          }
         }
 
         return {
           statusCode: 200,
-          body: JSON.stringify(room),
+          body: JSON.stringify({ message: "Oda kapatıldı." }),
         };
       }
 
-      if (type === "getResult") {
-        // Bu endpoint, frontend'in 10 saniyelik sayaç bittikten sonra sonucu çekmesi için
-        if (!roomId) {
-          return { statusCode: 400, body: "Eksik parametre." };
+      if (type === "choice") {
+        // Oyun seçim yapma
+
+        if (!roomId || !choice) {
+          return { statusCode: 400, body: "Oda ID ve seçim gerekli." };
         }
 
         const room = await rooms.findOne({ _id: new ObjectId(roomId) });
-
         if (!room) {
-          return { statusCode: 404, body: "Oda bulunamadı." };
+          return { statusCode: 404, body: "Böyle bir oda bulunmamakta." };
         }
 
-        if (room.status !== "ready" && room.status !== "finished") {
-          return { statusCode: 400, body: "Oyun başlamadı." };
+        if (room.player1 !== username && room.player2 !== username) {
+          return { statusCode: 403, body: "Bu odada değilsiniz." };
         }
 
-        // Rastgele yazı ya da tura seç (tek seferlik, sonuç yoksa belirle)
-        if (!room.result) {
+        const field = room.player1 === username ? "choice1" : "choice2";
+        await rooms.updateOne({ _id: room._id }, { $set: { [field]: choice } });
+
+        const updatedRoom = await rooms.findOne({ _id: room._id });
+
+        if (updatedRoom.choice1 && updatedRoom.choice2) {
+          // 10 saniye bekleme (bu backend'de değil frontend'de olacak)
+
+          // Sonuç belirle (yazı/tura random)
           const coin = Math.random() < 0.5 ? "yazı" : "tura";
 
           let winner = null;
-          if (coin === room.choice) winner = room.player1;
-          else winner = room.player2;
+          if (updatedRoom.choice1 === coin && updatedRoom.choice2 !== coin) winner = updatedRoom.player1;
+          else if (updatedRoom.choice2 === coin && updatedRoom.choice1 !== coin) winner = updatedRoom.player2;
 
-          // Bakiyeleri güncelle
-          await users.updateOne({ username: winner }, { $inc: { balance: room.bet * 2 } });
-          const loser = winner === room.player1 ? room.player2 : room.player1;
-          await users.updateOne({ username: loser }, { $inc: { balance: -room.bet } });
+          if (winner) {
+            await users.updateOne({ username: winner }, { $inc: { balance: updatedRoom.bet * 2 } });
+          } else {
+            // Beraberlik ise her iki oyuncuya bahis iadesi
+            await users.updateOne({ username: updatedRoom.player1 }, { $inc: { balance: updatedRoom.bet } });
+            await users.updateOne({ username: updatedRoom.player2 }, { $inc: { balance: updatedRoom.bet } });
+          }
 
-          // Sonucu ve durumu güncelle
-          await rooms.updateOne(
-            { _id: room._id },
-            { $set: { status: "finished", result: coin, winner } }
-          );
+          // Odayı sil
+          await rooms.deleteOne({ _id: room._id });
 
           return {
             statusCode: 200,
-            body: JSON.stringify({ result: coin, winner }),
+            body: JSON.stringify({
+              message: `Yazı Tura: ${coin} – ${winner ? `${winner} kazandı!` : "Beraberlik!"}`,
+              player1: updatedRoom.player1,
+              player2: updatedRoom.player2,
+              result: coin,
+              winner,
+            }),
           };
         } else {
-          // Sonuç zaten varsa onu döndür
           return {
             statusCode: 200,
-            body: JSON.stringify({ result: room.result, winner: room.winner }),
+            body: JSON.stringify({
+              message: "Rakip seçimi bekleniyor...",
+              player1: updatedRoom.player1,
+              player2: updatedRoom.player2,
+            }),
           };
         }
       }
     }
 
-    return { statusCode: 400, body: "Geçersiz istek." };
+    return { statusCode: 400, body: "Geçersiz istek" };
   } catch (err) {
     console.error(err);
-    return { statusCode: 500, body: "Sunucu hatası." };
+    return { statusCode: 500, body: "Sunucu hatası" };
   }
 };
