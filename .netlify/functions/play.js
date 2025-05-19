@@ -1,4 +1,3 @@
-// netlify/functions/play.js
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const uri = process.env.MONGO_URI;
@@ -29,7 +28,6 @@ exports.handler = async (event) => {
     const users = db.collection("users");
     const rooms = db.collection("rooms");
 
-    // GET işlemleri
     if (event.httpMethod === "GET") {
       const { type, username } = event.queryStringParameters || {};
 
@@ -45,14 +43,22 @@ exports.handler = async (event) => {
           .toArray();
         return { statusCode: 200, body: JSON.stringify(open) };
       }
+
+      if (type === "leaderboard") {
+        const topUsers = await users
+          .find({})
+          .sort({ balance: -1 })
+          .limit(10)
+          .project({ username: 1, balance: 1, _id: 0 })
+          .toArray();
+        return { statusCode: 200, body: JSON.stringify(topUsers) };
+      }
     }
 
-    // POST işlemleri
     if (event.httpMethod === "POST") {
       const b = JSON.parse(event.body);
       const { type, username, bet, choice, roomId } = b;
 
-      // Oda oluştur
       if (type === "createRoom") {
         if (!username || !bet || !choice) return { statusCode: 400, body: "Eksik parametre." };
         const u = await users.findOne({ username });
@@ -70,7 +76,6 @@ exports.handler = async (event) => {
         return { statusCode: 200, body: JSON.stringify({ message: "Oda oluşturuldu.", roomId: res.insertedId }) };
       }
 
-      // Odaya katıl
       if (type === "joinRoom") {
         if (!username || !roomId) return { statusCode: 400, body: "Eksik parametre." };
         const room = await rooms.findOne({ _id: new ObjectId(roomId) });
@@ -87,7 +92,6 @@ exports.handler = async (event) => {
         return { statusCode: 200, body: JSON.stringify({ message: "Odaya katıldınız." }) };
       }
 
-      // Odayı çek
       if (type === "getRoom") {
         if (!roomId) return { statusCode: 400, body: "Eksik parametre." };
         const room = await rooms.findOne({ _id: new ObjectId(roomId) });
@@ -95,19 +99,16 @@ exports.handler = async (event) => {
         return { statusCode: 200, body: JSON.stringify(room) };
       }
 
-      // Sonucu al
       if (type === "getResult") {
         if (!roomId) return { statusCode: 400, body: "Eksik parametre." };
         const room = await rooms.findOne({ _id: new ObjectId(roomId) });
         if (!room) return { statusCode: 404, body: "Oda bulunamadı." };
 
-        // Sonuç daha belirlenmediyse hesapla
         if (!room.result) {
           const coin = Math.random() < 0.5 ? "yazı" : "tura";
           const winner = coin === room.choice ? room.player1 : room.player2;
           const loser = winner === room.player1 ? room.player2 : room.player1;
 
-          // Bahis dağılımı: kazanan +bahis, kaybeden -bahis
           await users.updateOne({ username: winner }, { $inc: { balance: room.bet } });
           await users.updateOne({ username: loser }, { $inc: { balance: -room.bet } });
 
@@ -121,7 +122,6 @@ exports.handler = async (event) => {
         }
       }
 
-      // Odayı terk et / sil
       if (type === "leave") {
         if (!username) return { statusCode: 400, body: "Eksik parametre." };
         const room = await rooms.findOne({

@@ -1,4 +1,3 @@
-<!-- dashboard.html -->
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -12,6 +11,28 @@
     input,select{padding:8px;margin:5px;font-size:16px;border:none;border-radius:6px}
     #rooms{margin-top:30px}
     .room{background:#222;padding:15px;border-radius:8px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+
+    #leaderboard {
+      margin-top: 40px;
+      background: #222;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    #leaderboard h2 {
+      margin-top: 0;
+    }
+    #leaderboard ul {
+      list-style: none;
+      padding-left: 0;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    #leaderboard li {
+      padding: 8px 5px;
+      border-bottom: 1px solid #444;
+      display: flex;
+      justify-content: space-between;
+    }
   </style>
 </head>
 <body>
@@ -30,9 +51,17 @@
   <button onclick="fetchRooms()" class="secondary">Yenile</button>
   <div id="rooms">Yükleniyor...</div>
 
+  <div id="leaderboard">
+    <h2>En Yüksek Bakiyeye Sahip Oyuncular</h2>
+    <ul id="leaderboardList">
+      <li>Yükleniyor...</li>
+    </ul>
+  </div>
+
   <script>
     const username = localStorage.getItem("username");
     if (!username) window.location.href = "/";
+
     document.getElementById("user").innerText = username;
 
     async function fetchBalance() {
@@ -60,6 +89,22 @@
         `;
         div.querySelector("button").onclick = () => joinRoom(o._id);
         c.appendChild(div);
+      });
+    }
+
+    async function fetchLeaderboard() {
+      const r = await fetch(`/.netlify/functions/play?type=leaderboard`);
+      const list = await r.json();
+      const lb = document.getElementById("leaderboardList");
+      lb.innerHTML = "";
+      if (list.length === 0) {
+        lb.innerHTML = "<li>Henüz oyuncu yok.</li>";
+        return;
+      }
+      list.forEach((u, i) => {
+        const li = document.createElement("li");
+        li.innerHTML = `<span>${i+1}. ${u.username}</span> <span>${u.balance}</span>`;
+        lb.appendChild(li);
       });
     }
 
@@ -95,8 +140,9 @@
     }
 
     document.getElementById("createRoomForm").addEventListener("submit", createRoom);
-    fetchBalance(); fetchRooms();
+    fetchBalance(); fetchRooms(); fetchLeaderboard();
     setInterval(fetchRooms, 5000);
+    setInterval(fetchLeaderboard, 15000);
   </script>
 </body>
 </html>
