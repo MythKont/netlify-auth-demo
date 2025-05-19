@@ -1,353 +1,102 @@
+<!-- dashboard.html -->
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dashboard - Yazı Tura</title>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard</title>
   <style>
-    body {
-      background: #121212;
-      color: white;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 20px;
-    }
-    button {
-      cursor: pointer;
-      padding: 12px 20px;
-      margin: 10px;
-      border-radius: 8px;
-      border: none;
-      background: #00ffae;
-      color: black;
-      font-weight: bold;
-      font-size: 16px;
-    }
-    input, select {
-      padding: 10px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: none;
-      margin: 10px;
-      width: 120px;
-      text-align: center;
-    }
-    #rooms {
-      margin-top: 30px;
-    }
-    #rooms div {
-      background: #222;
-      margin: 8px auto;
-      padding: 15px;
-      width: 350px;
-      border-radius: 10px;
-      text-align: left;
-      position: relative;
-    }
-    #rooms div button {
-      position: absolute;
-      right: 15px;
-      top: 15px;
-      background: #0077ff;
-      color: white;
-      padding: 8px 12px;
-      font-size: 14px;
-    }
-    #gameArea {
-      margin-top: 30px;
-      background: #222;
-      padding: 20px;
-      border-radius: 10px;
-      width: 400px;
-      margin-left: auto;
-      margin-right: auto;
-      display: none;
-    }
-    #result {
-      margin-top: 20px;
-      font-size: 22px;
-      font-weight: bold;
-      min-height: 40px;
-    }
-    #countdown {
-      font-size: 30px;
-      font-weight: bold;
-      margin: 20px 0;
-    }
-    #your-name, #opponent-name {
-      font-weight: bold;
-      color: #00ffaa;
-    }
-    #logout {
-      position: fixed;
-      bottom: 10px;
-      right: 10px;
-      background: #ff4444;
-      color: white;
-      padding: 10px 15px;
-      border-radius: 8px;
-      font-weight: bold;
-    }
+    body { background:#121212; color:white; font-family:Arial,sans-serif; padding:20px }
+    button{padding:10px 20px;margin:5px;border:none;border-radius:6px;cursor:pointer;font-size:16px}
+    .primary{background:#00ffae;color:black}
+    .secondary{background:#444;color:white}
+    input,select{padding:8px;margin:5px;font-size:16px;border:none;border-radius:6px}
+    #rooms{margin-top:30px}
+    .room{background:#222;padding:15px;border-radius:8px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
   </style>
 </head>
 <body>
-  <h1>Yazı Tura Dashboard</h1>
-  <p>Bakiye: <span id="balance">0</span> ₺</p>
+  <h1>Hoşgeldin, <span id="user"></span>!</h1>
+  <p>Bakiye: <span id="balance">Yükleniyor...</span></p>
+  <button onclick="logout()" class="secondary">Çıkış</button>
 
-  <div>
-    <h3>Oda Oluştur</h3>
-    <input type="number" id="betInput" placeholder="Bahis miktarı" min="1" />
-    <select id="pickSelect">
-      <option value="yazı">Yazı</option>
-      <option value="tura">Tura</option>
-    </select>
-    <button onclick="createRoom()">Oda Aç</button>
-  </div>
+  <h2>Oda Oluştur</h2>
+  <form id="createRoomForm">
+    <label>Bahis:</label><input type="number" id="bet" min="1" required />
+    <label>Seçim:</label><select id="choice"><option value="yazı">Yazı</option><option value="tura">Tura</option></select>
+    <button type="submit" class="primary">Oluştur</button>
+  </form>
 
-  <div id="rooms">
-    <h3>Mevcut Odalar</h3>
-    <button onclick="loadRooms()">Yenile</button>
-    <div id="roomsList"></div>
-  </div>
-
-  <div id="gameArea">
-    <h3>Oyun Alanı</h3>
-    <p>Sen: <span id="your-name"></span></p>
-    <p>Rakip: <span id="opponent-name"></span></p>
-    <div id="countdown"></div>
-    <button id="btnYazi" onclick="makeChoice('yazı')">Yazı</button>
-    <button id="btnTura" onclick="makeChoice('tura')">Tura</button>
-    <div id="result"></div>
-  </div>
-
-  <button id="logout" onclick="logout()">Çıkış Yap</button>
+  <h2>Açık Odalar</h2>
+  <button onclick="fetchRooms()" class="secondary">Yenile</button>
+  <div id="rooms">Yükleniyor...</div>
 
   <script>
     const username = localStorage.getItem("username");
     if (!username) window.location.href = "/";
-
-    let balance = 0;
-    let currentRoomId = null;
-    let countdownInterval = null;
-    let countdownTime = 10;
-    let countdownActive = false;
+    document.getElementById("user").innerText = username;
 
     async function fetchBalance() {
-      const res = await fetch(`/.netlify/functions/play?type=balance&username=${username}`);
-      const data = await res.json();
-      balance = data.balance;
-      document.getElementById("balance").innerText = balance;
+      const r = await fetch(`/.netlify/functions/play?type=balance&username=${username}`);
+      const d = await r.json();
+      document.getElementById("balance").innerText = d.balance;
     }
 
-    async function loadRooms() {
-      const res = await fetch(`/.netlify/functions/play?type=listRooms`);
-      const rooms = await res.json();
-
-      const roomsList = document.getElementById("roomsList");
-      roomsList.innerHTML = "";
-
-      if (rooms.length === 0) {
-        roomsList.innerHTML = "<p>Oda yok.</p>";
-        return;
-      }
-
-      rooms.forEach((room) => {
+    async function fetchRooms() {
+      const r = await fetch(`/.netlify/functions/play?type=rooms`);
+      const arr = await r.json();
+      const c = document.getElementById("rooms");
+      c.innerHTML = arr.length
+        ? ""
+        : "<p>Şu anda açık oda yok.</p>";
+      arr.forEach(o => {
+        if (o.player1 === username) return;
         const div = document.createElement("div");
+        div.className = "room";
         div.innerHTML = `
-          <p><strong>Oda Sahibi:</strong> ${room.player1}</p>
-          <p><strong>Bahis:</strong> ${room.bet} ₺</p>
-          <p><strong>Seçim:</strong> ${room.choice1}</p>
-          <button onclick="joinRoom('${room._id}')">Odaya Katıl</button>
+          <div>
+            <strong>${o.player1}</strong> — Bahis: ${o.bet} — Seçim: ${o.choice}
+          </div>
+          <button class="secondary">Katıl</button>
         `;
-        roomsList.appendChild(div);
+        div.querySelector("button").onclick = () => joinRoom(o._id);
+        c.appendChild(div);
       });
     }
 
-    async function createRoom() {
-      const bet = Number(document.getElementById("betInput").value);
-      const pick = document.getElementById("pickSelect").value;
-
-      if (!bet || bet < 1) {
-        alert("Geçerli bir bahis girin.");
-        return;
-      }
-
-      if (bet > balance) {
-        alert("Yeterli bakiye yok.");
-        return;
-      }
-
-      const res = await fetch("/.netlify/functions/play", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "create", username, bet, pick }),
+    async function createRoom(e) {
+      e.preventDefault();
+      const bet = +document.getElementById("bet").value;
+      const choice = document.getElementById("choice").value;
+      const r = await fetch("/.netlify/functions/play", {
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({type:"createRoom",username,bet,choice})
       });
-
-      const data = await res.json();
-      if (res.status === 200) {
-        alert("Oda oluşturuldu. Rakip bekleniyor...");
-        currentRoomId = data.roomId;
-        showGameArea();
-        startWaitingCountdown();
-        await fetchBalance();
-        loadRooms();
-      } else {
-        alert(data);
-      }
+      const d = await r.json();
+      if (r.status===200) window.location.href = `/game.html?roomId=${d.roomId}`;
+      else alert(d);
     }
 
-    async function joinRoom(roomId) {
-      const res = await fetch("/.netlify/functions/play", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "join", username, roomId }),
+    async function joinRoom(id) {
+      const r = await fetch("/.netlify/functions/play", {
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({type:"joinRoom",username,roomId:id})
       });
-
-      if (res.status !== 200) {
-        const err = await res.text();
-        alert(err);
-        loadRooms();
-        return;
-      }
-
-      const data = await res.json();
-      currentRoomId = data.roomId;
-      alert("Odaya katıldınız. Oyun başlıyor...");
-      showGameArea();
-      startWaitingCountdown();
-      await fetchBalance();
-      loadRooms();
-    }
-
-    function showGameArea() {
-      document.getElementById("gameArea").style.display = "block";
-      document.getElementById("rooms").style.display = "none";
-      document.getElementById("betInput").disabled = true;
-      document.getElementById("pickSelect").disabled = true;
-    }
-
-    function hideGameArea() {
-      document.getElementById("gameArea").style.display = "none";
-      document.getElementById("rooms").style.display = "block";
-      document.getElementById("betInput").disabled = false;
-      document.getElementById("pickSelect").disabled = false;
-      document.getElementById("countdown").innerText = "";
-      document.getElementById("result").innerText = "";
-      document.getElementById("your-name").innerText = "";
-      document.getElementById("opponent-name").innerText = "";
-      currentRoomId = null;
-      countdownActive = false;
-      if (countdownInterval) {
-        clearInterval(countdownInterval);
-        countdownInterval = null;
-      }
-    }
-
-    async function makeChoice(choice) {
-      if (!currentRoomId) {
-        alert("Oda seçili değil.");
-        return;
-      }
-
-      if (countdownActive) {
-        alert("Zaten seçim yaptınız, lütfen bekleyin.");
-        return;
-      }
-
-      const res = await fetch("/.netlify/functions/play", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "choice", username, roomId: currentRoomId, choice }),
-      });
-
-      const data = await res.json();
-
-      if (res.status !== 200) {
-        alert(data);
-        return;
-      }
-
-      // İsimleri göster
-      const yourName = username;
-      let opponentName = "";
-      if (data.player1 === username) opponentName = data.player2;
-      else opponentName = data.player1;
-
-      document.getElementById("your-name").innerText = yourName;
-      document.getElementById("opponent-name").innerText = opponentName;
-
-      // Sayaç başlat
-      startGameCountdown(data);
-    }
-
-    function startWaitingCountdown() {
-      let timeLeft = 10;
-      countdownActive = true;
-      document.getElementById("countdown").innerText = `Başlama Süresi: ${timeLeft}s`;
-
-      countdownInterval = setInterval(() => {
-        timeLeft--;
-        document.getElementById("countdown").innerText = `Başlama Süresi: ${timeLeft}s`;
-
-        if (timeLeft <= 0) {
-          clearInterval(countdownInterval);
-          countdownInterval = null;
-          document.getElementById("countdown").innerText = "Yazı veya Tura seçiliyor...";
-          countdownActive = false;
-        }
-      }, 1000);
-    }
-
-    function startGameCountdown(data) {
-      let timeLeft = 10;
-      countdownActive = true;
-      document.getElementById("result").innerText = "";
-      document.getElementById("countdown").innerText = `Oyun Başlıyor: ${timeLeft}s`;
-
-      countdownInterval = setInterval(() => {
-        timeLeft--;
-        document.getElementById("countdown").innerText = `Oyun Başlıyor: ${timeLeft}s`;
-
-        if (timeLeft <= 0) {
-          clearInterval(countdownInterval);
-          countdownInterval = null;
-          countdownActive = false;
-
-          // Sonucu göster
-          document.getElementById("countdown").innerText = `Sonuç: ${data.result.toUpperCase()}`;
-          document.getElementById("result").innerText = data.message;
-
-          // 5 saniye sonra oyunu kapat ve yenile
-          setTimeout(() => {
-            hideGameArea();
-            fetchBalance();
-            loadRooms();
-          }, 5000);
-        }
-      }, 1000);
+      if (r.status===200) window.location.href = `/game.html?roomId=${id}`;
+      else { const t = await r.text(); alert(t); }
     }
 
     async function logout() {
-      if (currentRoomId) {
-        // Odadan çık (oda kapansın)
-        await fetch("/.netlify/functions/play", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ type: "leave", username }),
-        });
-      }
+      await fetch("/.netlify/functions/play", {
+        method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({type:"leave",username})
+      });
       localStorage.removeItem("username");
       window.location.href = "/";
     }
 
-    // Sayfa yüklendiğinde
-    window.onload = async () => {
-      await fetchBalance();
-      await loadRooms();
-
-      // Otomatik odalar listesini 5 saniyede bir yenile
-      setInterval(loadRooms, 5000);
-    };
+    document.getElementById("createRoomForm").addEventListener("submit", createRoom);
+    fetchBalance(); fetchRooms();
+    setInterval(fetchRooms, 5000);
   </script>
 </body>
 </html>
