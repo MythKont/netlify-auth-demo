@@ -1,11 +1,11 @@
 const { MongoClient, ServerApiVersion } = require("mongodb");
 
 const uri = process.env.MONGO_URI;
-
 let client;
+let clientPromise;
 
 async function getClient() {
-  if (!client) {
+  if (!clientPromise) {
     client = new MongoClient(uri, {
       serverApi: {
         version: ServerApiVersion.v1,
@@ -13,8 +13,9 @@ async function getClient() {
         deprecationErrors: true,
       },
     });
-    await client.connect();
+    clientPromise = client.connect();
   }
+  await clientPromise;
   return client;
 }
 
@@ -23,13 +24,16 @@ exports.handler = async (event) => {
     return { statusCode: 405, body: "Method Not Allowed" };
   }
 
-  const { identifier, password } = JSON.parse(event.body);
-
-  if (!identifier || !password) {
-    return { statusCode: 400, body: "Lütfen tüm alanları doldurunuz." };
-  }
-
   try {
+    const { identifier, password } = JSON.parse(event.body);
+
+    if (!identifier || !password) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ message: "Lütfen tüm alanları doldurunuz." }),
+      };
+    }
+
     const client = await getClient();
     const users = client.db("users").collection("users");
 
@@ -39,12 +43,24 @@ exports.handler = async (event) => {
     });
 
     if (!user) {
-      return { statusCode: 401, body: "Geçersiz kullanıcı adı veya şifre." };
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ message: "Geçersiz kullanıcı adı veya şifre." }),
+      };
     }
 
-    return { statusCode: 200, body: "Giriş başarılı." };
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        message: "Giriş başarılı.",
+        username: user.username,
+      }),
+    };
   } catch (err) {
-    console.error(err);
-    return { statusCode: 500, body: "Sunucu hatası." };
+    console.error("Login error:", err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: "Sunucu hatası", error: err.message }),
+    };
   }
 };
