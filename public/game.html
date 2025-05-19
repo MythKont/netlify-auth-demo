@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Oyun</title>
+  <style>
+    body {
+      background: #121212;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    #info {
+      margin-bottom: 20px;
+      font-size: 18px;
+    }
+    #countdown {
+      font-size: 48px;
+      font-weight: bold;
+      margin-bottom: 30px;
+    }
+    #result {
+      font-size: 40px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    #winner {
+      font-size: 24px;
+      margin-bottom: 30px;
+    }
+    button {
+      padding: 12px 30px;
+      font-size: 20px;
+      background-color: #00ffae;
+      color: black;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="info">Oda bilgileri yükleniyor...</div>
+  <div id="countdown"></div>
+  <div id="result"></div>
+  <div id="winner"></div>
+  <button id="exitBtn">Çıkış</button>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomId = urlParams.get("roomId");
+    const username = localStorage.getItem("username");
+    if (!username) window.location.href = "/";
+
+    const infoDiv = document.getElementById("info");
+    const countdownDiv = document.getElementById("countdown");
+    const resultDiv = document.getElementById("result");
+    const winnerDiv = document.getElementById("winner");
+    const exitBtn = document.getElementById("exitBtn");
+
+    let roomData = null;
+    let countdownInterval = null;
+
+    async function fetchRoom() {
+      const res = await fetch("/.netlify/functions/play", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "getRoom", roomId }),
+      });
+      if (res.status !== 200) {
+        alert("Oda bulunamadı.");
+        window.location.href = "/dashboard.html";
+        return;
+      }
+      roomData = await res.json();
+      renderRoom();
+    }
+
+    function renderRoom() {
+      if (!roomData) return;
+
+      // Bilgi göster
+      infoDiv.innerHTML = `
+        <div>Oda Sahibi: <strong>${roomData.player1}</strong></div>
+        <div>Bahis: <strong>${roomData.bet}</strong></div>
+        <div>Oda Durumu: <strong>${roomData.status}</strong></div>
+        <div>Sen: <strong>${username}</strong></div>
+        <div>Rakip: <strong>${roomData.player2 || "Bekleniyor..."}</strong></div>
+      `;
+
+      if (roomData.status === "waiting") {
+        countdownDiv.innerText = "Rakip bekleniyor...";
+        resultDiv.innerText = "";
+        winnerDiv.innerText = "";
+      } else if (roomData.status === "ready") {
+        startCountdown();
+      } else if (roomData.status === "finished") {
+        showResult();
+      }
+    }
+
+    function startCountdown() {
+      const startTime = roomData.startTime;
+      const totalTime = 10 * 1000; // 10 saniye
+      function update() {
+        const now = Date.now();
+        const elapsed = now - startTime;
+        let left = Math.ceil((totalTime - elapsed) / 1000);
+
+        if (left < 0) left = 0;
+
+        countdownDiv.innerText = `Oyun ${left} saniye sonra başlıyor...`;
+        resultDiv.innerText = "";
+        winnerDiv.innerText = "";
+
+        if (left <= 0) {
+          clearInterval(countdownInterval);
+          fetchResult();
+        }
+      }
+      update();
+      countdownInterval = setInterval(update, 500);
+    }
+
+    async function fetchResult() {
+      const res = await fetch("/.netlify/functions/play", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "getResult", roomId }),
+      });
+
+      if (res.status !== 200) {
+        resultDiv.innerText = "Sonuç alınamadı.";
+        return;
+      }
+
+      const data = await res.json();
+      resultDiv.innerText = `Sonuç: ${data.result.toUpperCase()}`;
+      winnerDiv.innerText = data.winner === username ? "Kazandınız!" : "Kaybettiniz!";
+    }
+
+    exitBtn.addEventListener("click", () => {
+      window.location.href = "/dashboard.html";
+    });
+
+    fetchRoom();
+
+    // 5 saniyede bir oda güncelle
+    setInterval(fetchRoom, 5000);
+  </script>
+</body>
+</html>
