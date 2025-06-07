@@ -193,6 +193,7 @@
         align-items: center;
         justify-content: center;
         text-align: center;
+        overflow-y: auto;
     }
     .welcome-message {
         font-size: 32px;
@@ -234,6 +235,29 @@
         -webkit-font-feature-settings: 'liga';
         -webkit-font-smoothing: antialiased;
         color: inherit;
+    }
+
+    input[type="text"] {
+        padding: 8px;
+        border-radius: 4px;
+        border: none;
+        width: 80%;
+        max-width: 400px;
+        font-size: 16px;
+    }
+
+    button.friend-request-btn {
+        padding: 6px 12px;
+        border-radius: 4px;
+        border: none;
+        background-color: #5865f2;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        margin-left: 10px;
+    }
+    button.friend-request-btn:hover {
+        background-color: #4752c4;
     }
 
     @media (max-width: 768px) {
@@ -293,6 +317,7 @@
         </div>
         <div class="main-sidebar-menu">
             <button id="profileBtn"><i class="material-icons">person</i>Profil</button>
+            <button id="friendsBtn"><i class="material-icons">group</i>Arkadaşlar</button>
             <button id="settingsBtn"><i class="material-icons">settings</i>Ayarlar</button>
             <button id="logoutBtn"><i class="material-icons">logout</i>Çıkış Yap</button>
         </div>
@@ -304,98 +329,163 @@
             </div>
             <div class="user-info">
                 <div class="username" id="current-username"></div>
-                <div class="user-id">#1234</div>
+                <div class="user-id" id="current-userid"></div>
             </div>
             <div class="controls">
-                <button title="Mikrofon Sustur/Aç"><i class="material-icons">mic</i></button>
-                <button title="Kulaklık Sustur/Aç"><i class="material-icons">headset_mic</i></button>
-                <button id="userSettingsBtn" title="Kullanıcı Ayarları"><i class="material-icons">settings</i></button>
+                <button id="settingsControlBtn" title="Ayarlar"><i class="material-icons">settings</i></button>
+                <button id="logoutControlBtn" title="Çıkış Yap"><i class="material-icons">logout</i></button>
             </div>
         </div>
     </div>
 
     <div class="main-content">
-        <div class="main-content-header">
-            <span id="main-header-title">Ana Sayfa</span>
-            <div style="flex-grow: 1;"></div>
-        </div>
-
-        <div class="main-content-area">
-            <div class="welcome-message">Hoşgeldin, <span id="welcome-username"></span>!</div>
-            <div class="sub-message">Bu senin sadeleştirilmiş dashboard'un.</div>
-            <div class="sub-message">Sol menüdeki butonları kullanarak farklı sayfalara gidebilirsin.</div>
+        <div class="main-content-header" id="main-header-title">Profil</div>
+        <div class="main-content-area" id="main-content-area">
+            <div class="welcome-message" id="welcome-message">Hoşgeldiniz, <span id="user-displayname"></span>!</div>
+            <div class="sub-message">Burada profilinizi görebilir ve arkadaşlarınızı yönetebilirsiniz.</div>
         </div>
     </div>
 
-    <script>
-        const username = localStorage.getItem("username");
-        if (!username) {
-            location.href = "/login.html";
-        } else {
-            document.getElementById("current-username").innerText = username;
-            document.getElementById("welcome-username").innerText = username;
-            document.getElementById("current-user-avatar").innerText = username.substring(0, 2).toUpperCase();
-        }
+<script>
+    // Kullanıcı bilgilerini localStorage'dan alalım
+    const username = localStorage.getItem("username") || "Misafir";
+    const userid = localStorage.getItem("userid") || "0000";
 
-        document.getElementById("logoutBtn").addEventListener("click", () => {
-            localStorage.removeItem("username");
-            location.href = "/login.html";
-        });
+    // Başlangıçta kullanıcı bilgilerini gösterelim
+    document.getElementById("current-username").innerText = username;
+    document.getElementById("current-userid").innerText = "#" + userid;
+    document.getElementById("user-displayname").innerText = username;
 
-        document.getElementById("profileBtn").addEventListener("click", () => {
-            document.getElementById("main-header-title").innerText = "Profilim";
-            document.querySelector(".main-content-area").innerHTML = `
-                <div class="welcome-message">Profil Sayfası</div>
-                <div class="sub-message">Kullanıcı adı: ${username}</div>
-                <div class="sub-message">Burada profil bilgilerini düzenleyebilirsin.</div>
-            `;
-        });
+    // Kullanıcının avatarı için ilk harfi gösterelim
+    document.getElementById("current-user-avatar").innerText = username.charAt(0).toUpperCase();
 
-        document.getElementById("settingsBtn").addEventListener("click", () => {
-            document.getElementById("main-header-title").innerText = "Ayarlar";
-            document.querySelector(".main-content-area").innerHTML = `
-                <div class="welcome-message">Ayarlar Sayfası</div>
-                <div class="sub-message">Burada uygulama ayarlarını yapabilirsin.</div>
-            `;
-        });
+    // Menü butonları referansları
+    const profileBtn = document.getElementById("profileBtn");
+    const friendsBtn = document.getElementById("friendsBtn");
+    const settingsBtn = document.getElementById("settingsBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
 
-        document.getElementById("userSettingsBtn").addEventListener("click", () => {
-            document.getElementById("main-header-title").innerText = "Kullanıcı Ayarları";
-            document.querySelector(".main-content-area").innerHTML = `
-                <div class="welcome-message">Kullanıcı Ayarları</div>
-                <div class="sub-message">Hesap bilgilerini, gizliliği vb. yönet.</div>
-            `;
-        });
+    const mainHeaderTitle = document.getElementById("main-header-title");
+    const mainContentArea = document.getElementById("main-content-area");
 
-        document.querySelector(".server-icon.home").addEventListener("click", () => {
-            document.getElementById("main-header-title").innerText = "Ana Sayfa";
-            document.querySelector(".main-content-area").innerHTML = `
-                <div class="welcome-message">Hoşgeldin, <span id="welcome-username">${username}</span>!</div>
-                <div class="sub-message">Bu senin sadeleştirilmiş dashboard'un.</div>
-                <div class="sub-message">Sol menüdeki butonları kullanarak farklı sayfalara gidebilirsin.</div>
-            `;
-        });
+    // Profil sayfasını göster
+    function showProfile() {
+        mainHeaderTitle.innerText = "Profil";
+        mainContentArea.innerHTML = `
+            <div class="welcome-message">Hoşgeldiniz, <span id="user-displayname-profile">${username}</span>!</div>
+            <div class="sub-message">Burada profil bilgilerinizi görüntüleyebilir ve düzenleyebilirsiniz.</div>
+        `;
+    }
 
-        document.querySelectorAll(".server-icon:not(.home):not(.add-server)").forEach(icon => {
-            icon.addEventListener("click", function() {
-                document.querySelectorAll(".server-icon").forEach(item => item.classList.remove("active"));
-                this.classList.add("active");
-                const serverName = this.title;
-                document.getElementById("main-header-title").innerText = serverName;
-                document.querySelector(".main-content-area").innerHTML = `
-                    <div class="welcome-message">${serverName} Sunucusuna Hoşgeldin!</div>
-                    <div class="sub-message">Bu sunucunun içeriği burada görüntülenecek.</div>
-                `;
+    // Ayarlar sayfasını göster
+    function showSettings() {
+        mainHeaderTitle.innerText = "Ayarlar";
+        mainContentArea.innerHTML = `
+            <h2>Ayarlar</h2>
+            <p>Burada uygulama ayarlarını yapabilirsiniz.</p>
+        `;
+    }
+
+    // Arkadaşlar sayfasını göster (arama + istek gönderme)
+    function showFriends() {
+        mainHeaderTitle.innerText = "Arkadaşlar";
+        mainContentArea.innerHTML = `
+            <div>
+                <input type="text" id="searchInput" placeholder="Kullanıcı adı veya email gir" />
+                <button id="searchBtn">Ara</button>
+                <ul id="results" style="margin-top: 20px; list-style: none; padding: 0;"></ul>
+            </div>
+        `;
+
+        document.getElementById("searchBtn").addEventListener("click", searchFriends);
+    }
+
+    // Arkadaş arama fonksiyonu
+    async function searchFriends() {
+        const query = document.getElementById("searchInput").value.trim();
+        if (!query) return alert("Arama alanı boş olamaz.");
+
+        try {
+            const res = await fetch("/.netlify/functions/friend-search", {
+                method: "POST",
+                body: JSON.stringify({ query }),
             });
-        });
 
-        document.querySelector(".server-icon.add-server").addEventListener("click", () => {
-             alert('Yeni sunucu ekleme sayfası yakında!');
-        });
-        document.querySelector(".server-icon[title='Sunucuları Keşfet']").addEventListener("click", () => {
-             alert('Sunucuları keşfetme sayfası yakında!');
-        });
-    </script>
+            if (!res.ok) {
+                alert("Arama başarısız.");
+                return;
+            }
+
+            const results = await res.json();
+
+            const list = document.getElementById("results");
+            list.innerHTML = "";
+
+            if (results.length === 0) {
+                list.innerHTML = "<li>Sonuç bulunamadı.</li>";
+                return;
+            }
+
+            results.forEach((user) => {
+                if (user.username === username) return; // Kendini gösterme
+
+                const li = document.createElement("li");
+                li.style.marginBottom = "10px";
+                li.textContent = `${user.username} (${user.email}) `;
+
+                const btn = document.createElement("button");
+                btn.textContent = "Arkadaş İsteği Gönder";
+                btn.className = "friend-request-btn";
+                btn.onclick = () => sendFriendRequest(user.username);
+
+                li.appendChild(btn);
+                list.appendChild(li);
+            });
+
+        } catch (err) {
+            alert("Bir hata oluştu: " + err.message);
+        }
+    }
+
+    // Arkadaş isteği gönderme fonksiyonu
+    async function sendFriendRequest(toUsername) {
+        try {
+            const res = await fetch("/.netlify/functions/friend-request", {
+                method: "POST",
+                body: JSON.stringify({ requester: username, toUsername }),
+            });
+
+            if (!res.ok) {
+                alert("İstek gönderilemedi.");
+                return;
+            }
+
+            const data = await res.json();
+            alert(data.message);
+        } catch (err) {
+            alert("Bir hata oluştu: " + err.message);
+        }
+    }
+
+    // Çıkış yapma işlemi (örnek: localStorage temizle ve sayfayı yenile)
+    function logout() {
+        localStorage.clear();
+        location.reload();
+    }
+
+    // Event listener ekle
+    profileBtn.addEventListener("click", showProfile);
+    friendsBtn.addEventListener("click", showFriends);
+    settingsBtn.addEventListener("click", showSettings);
+    logoutBtn.addEventListener("click", logout);
+
+    // Kullanıcı panelindeki ayarlar ve çıkış butonları da aynı işlemi yapıyor
+    document.getElementById("settingsControlBtn").addEventListener("click", showSettings);
+    document.getElementById("logoutControlBtn").addEventListener("click", logout);
+
+    // İlk açılışta profil göster
+    showProfile();
+</script>
 
 </body>
 </html>
