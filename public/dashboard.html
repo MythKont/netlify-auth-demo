@@ -2,22 +2,20 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Dashboard - Sade</title>
-<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
 <style>
+    /* --- SENİN CSSİN --- */
     body, html {
-        margin: 0;
-        padding: 0;
-        height: 100vh;
+        margin: 0; padding: 0; height: 100vh;
         font-family: 'Rubik', sans-serif;
         background-color: #36393f;
         color: #dcddde;
         display: flex;
         overflow: hidden;
     }
-
     .server-sidebar {
         width: 72px;
         background-color: #202225;
@@ -59,7 +57,6 @@
         border-radius: 30%;
         background-color: #5865f2;
     }
-
     .main-sidebar {
         width: 240px;
         background-color: #2f3136;
@@ -104,7 +101,6 @@
         background-color: #4f545c;
         color: #dcddde;
     }
-
     .user-panel {
         background-color: #292b2f;
         padding: 8px 12px;
@@ -167,7 +163,6 @@
     .user-panel .controls button:hover {
         color: #fff;
     }
-
     .main-content {
         flex-grow: 1;
         background-color: #36393f;
@@ -204,7 +199,6 @@
         font-size: 18px;
         color: #b9bbbe;
     }
-
     ::-webkit-scrollbar {
         width: 8px;
         height: 8px;
@@ -219,7 +213,6 @@
     ::-webkit-scrollbar-thumb:hover {
         background: #18191c;
     }
-
     .material-icons {
         font-family: 'Material Icons';
         font-weight: normal;
@@ -235,7 +228,6 @@
         -webkit-font-smoothing: antialiased;
         color: inherit;
     }
-
     @media (max-width: 768px) {
         body {
             flex-direction: column;
@@ -326,7 +318,7 @@
 <script>
     // Simüle edilmiş kullanıcı bilgisi
     const currentUser = {
-        username: "Kullanici123",
+        username: "Kullanici123",  // Buraya gerçek login sonrası username gelmeli
         userId: "1234",
     };
 
@@ -380,62 +372,120 @@
     }
 
     // Arkadaşlar sayfası içeriği ve yönetimi
-    let friends = JSON.parse(localStorage.getItem('friends')) || [];
+    let friends = []; // Örnek arkadas listesi, backend'den alınabilir
 
     function renderFriends() {
         mainHeaderTitle.innerText = "Arkadaşlar";
         setActiveButton(friendsBtn);
 
         mainContentArea.innerHTML = `
-            <div class="welcome-message">Arkadaşlar</div>
-            <div style="margin-bottom: 20px;">
-                <input type="text" id="newFriendInput" placeholder="Yeni arkadaş kullanıcı adı" style="padding: 8px; width: 70%; border-radius: 4px; border: none; font-size: 16px;" />
-                <button id="addFriendBtn" style="padding: 8px 12px; margin-left: 8px; border: none; border-radius: 4px; background-color: #5865f2; color: white; cursor: pointer;">Ekle</button>
+            <div style="width: 100%; max-width: 400px; margin: 0 auto; text-align: left;">
+                <input type="text" id="friendUsernameInput" placeholder="Arkadaş kullanıcı adını yaz" style="width: 100%; padding: 8px; margin-bottom: 10px; border-radius: 4px; border: none; font-size: 16px;">
+                <button id="addFriendBtn" style="width: 100%; padding: 10px; background-color: #5865f2; color: white; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">Arkadaş Ekle</button>
+                <div id="friendMessage" style="margin-top: 10px; font-weight: 600;"></div>
+                <hr style="margin: 20px 0;">
+                <h3>Arkadaş Listesi</h3>
+                <ul id="friendList" style="list-style: none; padding: 0; max-height: 300px; overflow-y: auto;">
+                    ${friends.length === 0 ? '<li>Henüz arkadaşın yok.</li>' : ''}
+                </ul>
             </div>
-            <ul id="friendsList" style="list-style: none; padding: 0; max-height: 300px; overflow-y: auto; color:#fff;"></ul>
         `;
 
-        const friendsList = document.getElementById('friendsList');
-        if(friends.length === 0) {
-            friendsList.innerHTML = `<li style="color: #b9bbbe;">Henüz arkadaş yok.</li>`;
-        } else {
-            friendsList.innerHTML = friends.map(f => `<li style="padding: 8px 0; border-bottom: 1px solid #2f3136;">${f}</li>`).join('');
+        // Arkadaş ekleme işlemi
+        const addFriendBtn = document.getElementById('addFriendBtn');
+        const friendUsernameInput = document.getElementById('friendUsernameInput');
+        const friendMessage = document.getElementById('friendMessage');
+        const friendList = document.getElementById('friendList');
+
+        function updateFriendList() {
+            if(friends.length === 0) {
+                friendList.innerHTML = '<li>Henüz arkadaşın yok.</li>';
+                return;
+            }
+            friendList.innerHTML = '';
+            friends.forEach(friend => {
+                const li = document.createElement('li');
+                li.style.padding = '6px 0';
+                li.textContent = `${friend.username} (${friend.status})`;
+                friendList.appendChild(li);
+            });
         }
 
-        document.getElementById('addFriendBtn').addEventListener('click', () => {
-            const newFriendInput = document.getElementById('newFriendInput');
-            const newFriend = newFriendInput.value.trim();
-            if(newFriend === '') {
-                alert('Lütfen geçerli bir kullanıcı adı girin.');
+        updateFriendList();
+
+        addFriendBtn.addEventListener('click', async () => {
+            const friendUsername = friendUsernameInput.value.trim();
+            friendMessage.style.color = 'red';
+            friendMessage.innerText = '';
+
+            if(!friendUsername) {
+                friendMessage.innerText = 'Lütfen geçerli bir kullanıcı adı giriniz.';
                 return;
             }
-            if(friends.includes(newFriend)) {
-                alert('Bu kullanıcı zaten arkadaş listende.');
+            if(friendUsername.toLowerCase() === currentUser.username.toLowerCase()) {
+                friendMessage.innerText = 'Kendini arkadaş olarak ekleyemezsin.';
                 return;
             }
-            friends.push(newFriend);
-            localStorage.setItem('friends', JSON.stringify(friends));
-            newFriendInput.value = '';
-            renderFriends();
+            if(friends.find(f => f.username.toLowerCase() === friendUsername.toLowerCase())) {
+                friendMessage.innerText = 'Bu kullanıcı zaten arkadaş listenizde.';
+                return;
+            }
+
+            // Arkadaş isteği API çağrısı
+            friendMessage.style.color = 'black';
+            friendMessage.innerText = 'Arkadaş isteği gönderiliyor...';
+
+            try {
+                const response = await fetch('/api/friends/request', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        from: currentUser.username,
+                        to: friendUsername
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    friendMessage.style.color = 'red';
+                    friendMessage.innerText = errorData.message || 'Arkadaş isteği gönderilemedi.';
+                    return;
+                }
+
+                const result = await response.json();
+
+                // İstek başarılıysa listeye ekle (durum pending)
+                friends.push({ username: friendUsername, status: 'pending' });
+                updateFriendList();
+                friendUsernameInput.value = '';
+                friendMessage.style.color = 'green';
+                friendMessage.innerText = 'Arkadaşlık isteği gönderildi.';
+
+            } catch (error) {
+                friendMessage.style.color = 'red';
+                friendMessage.innerText = 'Bir hata oluştu. Lütfen tekrar deneyin.';
+                console.error(error);
+            }
         });
     }
 
-    // Çıkış yapma işlemi (sadece simülasyon)
+    // Çıkış yap (örnek)
     function logout() {
-        alert("Çıkış yapıldı.");
-        // Burada gerçek çıkış işlemi yapılabilir
+        alert("Çıkış yapılıyor...");
+        // Burada gerçek logout işlemi yapılabilir, token temizleme vs.
+        // window.location.href = "/login.html";
     }
 
-    // Başlangıçta Profil sayfasını göster
-    renderProfile();
-
-    // Event listenerlar
     profileBtn.addEventListener('click', renderProfile);
     settingsBtn.addEventListener('click', renderSettings);
     friendsBtn.addEventListener('click', renderFriends);
     logoutBtn.addEventListener('click', logout);
 
-</script>
+    // İlk açılışta profil sayfasını göster
+    renderProfile();
 
+</script>
 </body>
 </html>
