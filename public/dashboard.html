@@ -1,148 +1,143 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dashboard</title>
-  <style>
-    body { background:#121212; color:white; font-family:Arial,sans-serif; padding:20px }
-    button{padding:10px 20px;margin:5px;border:none;border-radius:6px;cursor:pointer;font-size:16px}
-    .primary{background:#00ffae;color:black}
-    .secondary{background:#444;color:white}
-    input,select{padding:8px;margin:5px;font-size:16px;border:none;border-radius:6px}
-    #rooms{margin-top:30px}
-    .room{background:#222;padding:15px;border-radius:8px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dashboard - Discord Benzeri</title>
+<style>
+  /* Genel stiller */
+  body, html {
+    margin: 0; padding: 0;
+    height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #2f3136;
+    color: #ddd;
+    display: flex;
+    overflow: hidden;
+  }
 
-    #leaderboard {
-      margin-top: 40px;
-      background: #222;
-      padding: 15px;
-      border-radius: 8px;
+  /* Sidebar */
+  #sidebar {
+    background-color: #202225;
+    width: 260px;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+  }
+  #sidebar h2 {
+    margin: 0 0 20px 0;
+    font-size: 24px;
+    color: #7289da;
+  }
+  #user-info {
+    margin-bottom: 30px;
+  }
+  #user-info strong {
+    font-weight: 700;
+    font-size: 18px;
+  }
+
+  /* Menu */
+  #menu {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  #menu button {
+    background-color: #36393f;
+    border: none;
+    padding: 12px 15px;
+    border-radius: 6px;
+    color: #ddd;
+    font-size: 16px;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.2s;
+  }
+  #menu button:hover {
+    background-color: #7289da;
+    color: white;
+  }
+
+  /* Main content */
+  #main {
+    flex-grow: 1;
+    background-color: #36393f;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #welcome {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  #chat {
+    background-color: #2f3136;
+    flex-grow: 1;
+    border-radius: 10px;
+    padding: 15px;
+    color: #ccc;
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    body, html {
+      flex-direction: column;
+      height: auto;
     }
-    #leaderboard h2 {
-      margin-top: 0;
-    }
-    #leaderboard ul {
-      list-style: none;
-      padding-left: 0;
-      max-height: 300px;
-      overflow-y: auto;
-    }
-    #leaderboard li {
-      padding: 8px 5px;
-      border-bottom: 1px solid #444;
-      display: flex;
+    #sidebar {
+      width: 100%;
+      flex-direction: row;
       justify-content: space-between;
+      padding: 10px 20px;
     }
-  </style>
+    #menu {
+      flex-direction: row;
+      gap: 10px;
+    }
+    #main {
+      padding: 15px;
+    }
+  }
+</style>
 </head>
 <body>
-  <h1>Hoşgeldin, <span id="user"></span>!</h1>
-  <p>Bakiye: <span id="balance">Yükleniyor...</span></p>
-  <button onclick="logout()" class="secondary">Çıkış</button>
 
-  <h2>Oda Oluştur</h2>
-  <form id="createRoomForm">
-    <label>Bahis:</label><input type="number" id="bet" min="1" required />
-    <label>Seçim:</label><select id="choice"><option value="yazı">Yazı</option><option value="tura">Tura</option></select>
-    <button type="submit" class="primary">Oluştur</button>
-  </form>
+  <div id="sidebar">
+    <h2>Discord Clone</h2>
+    <div id="user-info">Hoşgeldin, <strong id="username">...</strong></div>
+    <div id="menu">
+      <button onclick="alert('Profil sayfası yakında!')">Profil</button>
+      <button onclick="alert('Ayarlar sayfası yakında!')">Ayarlar</button>
+      <button id="logoutBtn">Çıkış Yap</button>
+    </div>
+  </div>
 
-  <h2>Açık Odalar</h2>
-  <button onclick="fetchRooms()" class="secondary">Yenile</button>
-  <div id="rooms">Yükleniyor...</div>
-
-  <div id="leaderboard">
-    <h2>En Yüksek Bakiyeye Sahip Oyuncular</h2>
-    <ul id="leaderboardList">
-      <li>Yükleniyor...</li>
-    </ul>
+  <div id="main">
+    <div id="welcome">Dashboard’a hoşgeldiniz!</div>
+    <div id="chat">Henüz bir sohbet yok. 🤖</div>
   </div>
 
   <script>
     const username = localStorage.getItem("username");
-    if (!username) window.location.href = "/";
-
-    document.getElementById("user").innerText = username;
-
-    async function fetchBalance() {
-      const r = await fetch(`/.netlify/functions/play?type=balance&username=${username}`);
-      const d = await r.json();
-      document.getElementById("balance").innerText = d.balance;
+    if (!username) {
+      // Giriş yapılmamışsa login sayfasına yönlendir
+      location.href = "/login.html";
+    } else {
+      document.getElementById("username").innerText = username;
     }
 
-    async function fetchRooms() {
-      const r = await fetch(`/.netlify/functions/play?type=rooms`);
-      const arr = await r.json();
-      const c = document.getElementById("rooms");
-      c.innerHTML = arr.length
-        ? ""
-        : "<p>Şu anda açık oda yok.</p>";
-      arr.forEach(o => {
-        if (o.player1 === username) return;
-        const div = document.createElement("div");
-        div.className = "room";
-        div.innerHTML = `
-          <div>
-            <strong>${o.player1}</strong> — Bahis: ${o.bet} — Seçim: ${o.choice}
-          </div>
-          <button class="secondary">Katıl</button>
-        `;
-        div.querySelector("button").onclick = () => joinRoom(o._id);
-        c.appendChild(div);
-      });
-    }
-
-    async function fetchLeaderboard() {
-      const r = await fetch(`/.netlify/functions/play?type=leaderboard`);
-      const list = await r.json();
-      const lb = document.getElementById("leaderboardList");
-      lb.innerHTML = "";
-      if (list.length === 0) {
-        lb.innerHTML = "<li>Henüz oyuncu yok.</li>";
-        return;
-      }
-      list.forEach((u, i) => {
-        const li = document.createElement("li");
-        li.innerHTML = `<span>${i+1}. ${u.username}</span> <span>${u.balance}</span>`;
-        lb.appendChild(li);
-      });
-    }
-
-    async function createRoom(e) {
-      e.preventDefault();
-      const bet = +document.getElementById("bet").value;
-      const choice = document.getElementById("choice").value;
-      const r = await fetch("/.netlify/functions/play", {
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({type:"createRoom",username,bet,choice})
-      });
-      const d = await r.json();
-      if (r.status===200) window.location.href = `/game.html?roomId=${d.roomId}`;
-      else alert(d);
-    }
-
-    async function joinRoom(id) {
-      const r = await fetch("/.netlify/functions/play", {
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({type:"joinRoom",username,roomId:id})
-      });
-      if (r.status===200) window.location.href = `/game.html?roomId=${id}`;
-      else { const t = await r.text(); alert(t); }
-    }
-
-    async function logout() {
-      await fetch("/.netlify/functions/play", {
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({type:"leave",username})
-      });
+    document.getElementById("logoutBtn").addEventListener("click", () => {
       localStorage.removeItem("username");
-      window.location.href = "/";
-    }
-
-    document.getElementById("createRoomForm").addEventListener("submit", createRoom);
-    fetchBalance(); fetchRooms(); fetchLeaderboard();
-    setInterval(fetchRooms, 5000);
-    setInterval(fetchLeaderboard, 15000);
+      location.href = "/login.html";
+    });
   </script>
+
 </body>
 </html>
