@@ -7,7 +7,288 @@
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
 <style>
-  /* ... (stil kısmını olduğu gibi bırakabilirsiniz) ... */
+    /* Temel stil, biraz sadeleştirdim */
+    body, html {
+        margin: 0; padding: 0; height: 100vh;
+        font-family: 'Rubik', sans-serif;
+        background-color: #36393f;
+        color: #dcddde;
+        display: flex;
+        overflow: hidden;
+    }
+    .server-sidebar {
+        width: 72px;
+        background-color: #202225;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 12px 0;
+        gap: 8px;
+    }
+    .server-icon {
+        width: 48px;
+        height: 48px;
+        background-color: #36393f;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #fff;
+        font-size: 20px;
+        cursor: pointer;
+        transition: border-radius 0.2s, background-color 0.2s;
+        flex-shrink: 0;
+    }
+    .server-icon:hover {
+        border-radius: 30%;
+        background-color: #5865f2;
+    }
+    .server-icon.home {
+        background-color: #5865f2;
+        border-radius: 30%;
+        font-size: 24px;
+    }
+    .server-icon.add-server {
+        background-color: #36393f;
+        color: #43b581;
+        font-size: 24px;
+    }
+    .server-icon.active {
+        border-radius: 30%;
+        background-color: #5865f2;
+    }
+    .main-sidebar {
+        width: 240px;
+        background-color: #2f3136;
+        display: flex;
+        flex-direction: column;
+    }
+    .sidebar-header {
+        padding: 10px 12px;
+        border-bottom: 1px solid #292b2f;
+        font-size: 18px;
+        font-weight: 600;
+        color: #dcddde;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .main-sidebar-menu {
+        padding: 10px 12px;
+        flex-grow: 1;
+        overflow-y: auto;
+    }
+    .main-sidebar-menu button {
+        width: 100%;
+        background-color: transparent;
+        border: none;
+        color: #8e9297;
+        padding: 8px 10px;
+        text-align: left;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 2px;
+    }
+    .main-sidebar-menu button:hover {
+        background-color: #36393f;
+        color: #dcddde;
+    }
+    .main-sidebar-menu button.active {
+        background-color: #4f545c;
+        color: #dcddde;
+    }
+    .user-panel {
+        background-color: #292b2f;
+        padding: 8px 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-top: 1px solid #202225;
+    }
+    .avatar-wrapper {
+        position: relative;
+        width: 32px;
+        height: 32px;
+    }
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: #5865f2;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-size: 14px;
+        flex-shrink: 0;
+        text-transform: uppercase;
+    }
+    .user-status-icon {
+        width: 8px;
+        height: 8px;
+        background-color: #43b581;
+        border-radius: 50%;
+        border: 2px solid #2f3136;
+        position: absolute;
+        bottom: 0;
+        right: 0;
+    }
+    .user-panel .username {
+        font-weight: 600;
+        font-size: 14px;
+        color: #fff;
+    }
+    .user-panel .controls button {
+        background: none;
+        border: none;
+        color: #b9bbbe;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 4px;
+        transition: color 0.2s;
+    }
+    .user-panel .controls button:hover {
+        color: #fff;
+    }
+    .main-content {
+        flex-grow: 1;
+        background-color: #36393f;
+        display: flex;
+        flex-direction: column;
+    }
+    .main-content-header {
+        background-color: #36393f;
+        padding: 10px 20px;
+        border-bottom: 1px solid #202225;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 18px;
+        font-weight: 600;
+        color: #fff;
+    }
+    .main-content-area {
+        flex-grow: 1;
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        text-align: center;
+    }
+    .welcome-message {
+        font-size: 32px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 20px;
+    }
+    .sub-message {
+        font-size: 18px;
+        color: #b9bbbe;
+        margin-bottom: 20px;
+    }
+    input[type="text"] {
+        width: 100%;
+        max-width: 400px;
+        padding: 8px 12px;
+        font-size: 16px;
+        border-radius: 6px;
+        border: none;
+        outline: none;
+        margin-bottom: 10px;
+    }
+    button.search-btn, button.add-friend-btn {
+        background-color: #5865f2;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 10px 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        margin-left: 10px;
+    }
+    button.search-btn:hover, button.add-friend-btn:hover {
+        background-color: #4752c4;
+    }
+    ul.user-search-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        max-width: 400px;
+        text-align: left;
+        color: #dcddde;
+    }
+    ul.user-search-list li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #2f3136;
+        padding: 8px 12px;
+        margin-bottom: 8px;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: default;
+    }
+    ul.user-search-list li button {
+        background-color: #43b581;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    ul.user-search-list li button:hover {
+        background-color: #36875e;
+    }
+    #friendMessage {
+        max-width: 400px;
+        margin-top: 10px;
+        font-weight: 600;
+        min-height: 24px;
+    }
+    @media (max-width: 768px) {
+        body {
+            flex-direction: column;
+            height: auto;
+            overflow-y: auto;
+        }
+        .server-sidebar {
+            width: 100%;
+            height: auto;
+            flex-direction: row;
+            justify-content: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #202225;
+            flex-wrap: wrap;
+        }
+        .main-sidebar {
+            width: 100%;
+            height: auto;
+            border-left: none;
+            border-bottom: 1px solid #202225;
+        }
+        .main-sidebar-menu {
+            padding: 0 12px;
+        }
+        .user-panel {
+            border-top: none;
+            border-bottom: 1px solid #202225;
+        }
+        .main-content-header {
+            border-top: 1px solid #202225;
+        }
+        .main-content-area {
+            padding: 15px;
+        }
+    }
 </style>
 </head>
 <body>
@@ -49,16 +330,21 @@
 </div>
 
 <script>
-    // Eğer kullanıcı login değilse index sayfasına yönlendir
-    if (!localStorage.getItem("username")) {
-      window.location.href = "index.html";
+    // LocalStorage'dan kullanıcıyı al (login kontrolü)
+    const storedUser = localStorage.getItem("username");
+
+    if (!storedUser) {
+        // Kullanıcı yoksa index.html sayfasına yönlendir
+        window.location.href = "index.html";
     }
 
+    // currentUser objesi localStorage'dan alınan kullanıcı adıyla
     const currentUser = {
-      username: localStorage.getItem("username"),
-      status: "online"
+        username: storedUser,
+        status: "online" // online, offline, vs
     };
 
+    // Profilden avatar isminin ilk harflerini oluştur
     function getAvatarInitials(name) {
         return name.charAt(0).toUpperCase();
     }
@@ -69,50 +355,168 @@
         userAvatar.textContent = getAvatarInitials(currentUser.username);
         usernameDisplay.textContent = currentUser.username;
     }
-
     updateUserPanel();
 
-    // Çıkış fonksiyonu
+    // Sidebar butonları
+    const profileBtn = document.getElementById('profileBtn');
+    const friendsBtn = document.getElementById('friendsBtn');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const mainHeaderTitle = document.getElementById('mainHeaderTitle');
+    const mainContentArea = document.getElementById('mainContentArea');
+
+    // Aktif buton renklendirme
+    function setActiveButton(button) {
+        [profileBtn, friendsBtn, settingsBtn].forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+    }
+
+    // Profil sayfası (örnek)
+    function renderProfile() {
+        mainHeaderTitle.innerText = "Profil";
+        setActiveButton(profileBtn);
+        mainContentArea.innerHTML = `
+            <div class="welcome-message">Hoşgeldin, ${currentUser.username}!</div>
+            <div class="sub-message">Profil bilgilerin burada görünecek.</div>
+        `;
+    }
+
+    // Ayarlar sayfası (örnek)
+    function renderSettings() {
+        mainHeaderTitle.innerText = "Ayarlar";
+        setActiveButton(settingsBtn);
+        mainContentArea.innerHTML = `
+            <div>Burada ayarlarınız yer alacak.</div>
+        `;
+    }
+
+    // Arkadaşlar sayfası: Arama + sonuç + arkadaş ekle butonu
+    async function renderFriends() {
+        mainHeaderTitle.innerText = "Arkadaş Ekle";
+        setActiveButton(friendsBtn);
+
+        mainContentArea.innerHTML = `
+            <input type="text" id="friendSearchInput" placeholder="Kullanıcı adı ara..." autocomplete="off" />
+            <ul id="searchResults" class="user-search-list"></ul>
+            <div id="friendMessage"></div>
+        `;
+
+        const friendSearchInput = document.getElementById('friendSearchInput');
+        const searchResults = document.getElementById('searchResults');
+        const friendMessage = document.getElementById('friendMessage');
+
+        // Kullanıcı araması yapacak fonksiyon (backend API çağrısı)
+        async function searchUsers(query) {
+            if(!query) return [];
+            try {
+                // Backend'e GET isteğiyle arama yap (örnek: /api/users/search?query=...)
+                const res = await fetch(`/api/users/search?query=${encodeURIComponent(query)}`);
+                if(!res.ok) return [];
+                const data = await res.json();
+                // data: [{username: "MythKont"}, {username: "Mythical"}, ...]
+                return data;
+            } catch(e) {
+                console.error(e);
+                return [];
+            }
+        }
+
+        // Arkadaşlık isteği gönderme fonksiyonu
+        async function sendFriendRequest(toUsername) {
+            friendMessage.style.color = 'black';
+            friendMessage.textContent = `Arkadaşlık isteği ${toUsername} gönderiliyor...`;
+            try {
+                const res = await fetch('/api/friends/request', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        from: currentUser.username,
+                        to: toUsername
+                    })
+                });
+                if(!res.ok) {
+                    const errData = await res.json();
+                    friendMessage.style.color = 'red';
+                    friendMessage.textContent = errData.message || 'Arkadaşlık isteği gönderilemedi.';
+                    return false;
+                }
+                friendMessage.style.color = 'green';
+                friendMessage.textContent = `Arkadaşlık isteği ${toUsername} gönderildi.`;
+                return true;
+            } catch(e) {
+                friendMessage.style.color = 'red';
+                friendMessage.textContent = 'Bir hata oluştu. Lütfen tekrar deneyin.';
+                console.error(e);
+                return false;
+            }
+        }
+
+        // Arama sonucu listeleme fonksiyonu
+        function renderSearchResults(users) {
+            searchResults.innerHTML = "";
+            if(users.length === 0) {
+                searchResults.innerHTML = "<li>Sonuç bulunamadı.</li>";
+                return;
+            }
+            users.forEach(user => {
+                // Eğer kullanıcı kendisi ise gösterme
+                if(user.username.toLowerCase() === currentUser.username.toLowerCase()) return;
+
+                const li = document.createElement('li');
+                li.textContent = user.username;
+
+                const addBtn = document.createElement('button');
+                addBtn.textContent = "Arkadaş Ekle";
+                addBtn.addEventListener('click', async () => {
+                    addBtn.disabled = true;
+                    const success = await sendFriendRequest(user.username);
+                    if(success) addBtn.textContent = "İstek Gönderildi";
+                    addBtn.disabled = false;
+                });
+                li.appendChild(addBtn);
+
+                searchResults.appendChild(li);
+            });
+        }
+
+        let debounceTimer;
+        friendSearchInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(async () => {
+                const query = friendSearchInput.value.trim();
+                if(query.length < 2) {
+                    searchResults.innerHTML = "";
+                    friendMessage.textContent = "";
+                    return;
+                }
+                const users = await searchUsers(query);
+                renderSearchResults(users);
+            }, 400);
+        });
+    }
+
+    // Logout fonksiyonu
     function logout() {
-      localStorage.removeItem("username");
-      window.location.href = "index.html";
+        localStorage.removeItem("username");
+        window.location.href = "index.html";
     }
 
-    // Çıkış butonlarına event listener ekle
-    document.getElementById("logoutBtn").addEventListener("click", logout);
-    document.getElementById("logoutBtn2").addEventListener("click", logout);
+    // Eventler
+    profileBtn.addEventListener('click', renderProfile);
+    friendsBtn.addEventListener('click', renderFriends);
+    settingsBtn.addEventListener('click', renderSettings);
+    logoutBtn.addEventListener('click', logout);
 
-    // Menü butonları için basit örnek: içerik değiştirme
-    const mainContentArea = document.getElementById("mainContentArea");
-    const mainHeaderTitle = document.getElementById("mainHeaderTitle");
-
-    document.getElementById("profileBtn").addEventListener("click", () => {
-      mainHeaderTitle.textContent = "Profil";
-      mainContentArea.innerHTML = `<p>Hoşgeldin, <strong>${currentUser.username}</strong>!</p>`;
-      setActiveButton("profileBtn");
+    // İkinci logout ve ayar butonları user panelde
+    document.getElementById('logoutBtn2').addEventListener('click', logout);
+    document.getElementById('settingsBtn2').addEventListener('click', () => {
+        settingsBtn.click();
     });
 
-    document.getElementById("friendsBtn").addEventListener("click", () => {
-      mainHeaderTitle.textContent = "Arkadaşlar";
-      mainContentArea.innerHTML = `<p>Arkadaş listeniz burada görüntülenecek.</p>`;
-      setActiveButton("friendsBtn");
-    });
-
-    document.getElementById("settingsBtn").addEventListener("click", () => {
-      mainHeaderTitle.textContent = "Ayarlar";
-      mainContentArea.innerHTML = `<p>Ayarlar burada olacak.</p>`;
-      setActiveButton("settingsBtn");
-    });
-
-    function setActiveButton(activeId) {
-      ["profileBtn", "friendsBtn", "settingsBtn"].forEach(id => {
-        document.getElementById(id).classList.toggle("active", id === activeId);
-      });
-    }
-
-    // Başlangıçta profil sekmesi aktif
-    document.getElementById("profileBtn").click();
+    // İlk açılışta profil sayfasını göster
+    renderProfile();
 </script>
+
 
 </body>
 </html>
