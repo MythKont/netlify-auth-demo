@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Giriş Yap</title>
+</head>
+<body>
+  <h2>Giriş Yap</h2>
+  <input id="log-identifier" placeholder="Email veya Kullanıcı Adı" />
+  <input id="log-password" type="password" placeholder="Şifre" />
+  <button onclick="login()">Giriş Yap</button>
+
+  <p id="msg" style="color: red;"></p>
+
+  <script>
+    // Eğer zaten giriş yapılmışsa, direk dashboard'a yönlendir
+    if (localStorage.getItem("username")) {
+      window.location.href = "/dashboard.html";
+    }
+
+    async function login() {
+      const identifier = document.getElementById("log-identifier").value.trim();
+      const password = document.getElementById("log-password").value.trim();
+
+      if (!identifier || !password) {
+        document.getElementById("msg").innerText = "Lütfen tüm alanları doldurun.";
+        return;
+      }
+
+      try {
+        const res = await fetch("/.netlify/functions/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ identifier, password }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          // Backend'den dönen username'yi localStorage'a koy
+          localStorage.setItem("username", data.username);
+          document.getElementById("msg").style.color = "green";
+          document.getElementById("msg").innerText = "Giriş başarılı! Yönlendiriliyorsunuz...";
+          setTimeout(() => {
+            window.location.href = "/dashboard.html";
+          }, 1000);
+        } else {
+          document.getElementById("msg").style.color = "red";
+          document.getElementById("msg").innerText = data.message || "Giriş başarısız.";
+        }
+      } catch (err) {
+        document.getElementById("msg").style.color = "red";
+        document.getElementById("msg").innerText = "Sunucu hatası.";
+        console.error(err);
+      }
+    }
+  </script>
+</body>
+</html>

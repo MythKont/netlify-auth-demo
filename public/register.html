@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kayıt Ol</title>
+</head>
+<body>
+  <h2>Kayıt Ol</h2>
+  <input id="reg-email" placeholder="Email" />
+  <input id="reg-username" placeholder="Kullanıcı Adı" />
+  <input id="reg-password" type="password" placeholder="Şifre" />
+  <button onclick="register()">Kayıt Ol</button>
+
+  <p id="msg" style="color: red;"></p>
+
+  <script>
+    // Eğer zaten giriş yapılmışsa, direk dashboard'a yönlendir
+    if (localStorage.getItem("username")) {
+      window.location.href = "/dashboard.html";
+    }
+
+    async function register() {
+      const email = document.getElementById("reg-email").value.trim();
+      const username = document.getElementById("reg-username").value.trim();
+      const password = document.getElementById("reg-password").value.trim();
+
+      if (!email || !username || !password) {
+        document.getElementById("msg").innerText = "Lütfen tüm alanları doldurun.";
+        return;
+      }
+
+      const res = await fetch("/.netlify/functions/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, username, password }),
+      });
+
+      const text = await res.text();
+      document.getElementById("msg").innerText = text;
+    }
+  </script>
+</body>
+</html>

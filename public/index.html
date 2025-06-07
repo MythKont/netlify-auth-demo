@@ -3,84 +3,36 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Giriş / Kayıt</title>
+  <title>Ana Sayfa</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    button {
+      display: block;
+      width: 200px;
+      margin: 10px auto;
+      padding: 10px;
+      font-size: 16px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
 </head>
 <body>
-  <h2>Kayıt Ol</h2>
-  <input id="reg-email" placeholder="Email" />
-  <input id="reg-username" placeholder="Kullanıcı Adı" />
-  <input id="reg-password" type="password" placeholder="Şifre" />
-  <button onclick="register()">Kayıt Ol</button>
-
-  <h2>Giriş Yap</h2>
-  <input id="log-identifier" placeholder="Email veya Kullanıcı Adı" />
-  <input id="log-password" type="password" placeholder="Şifre" />
-  <button onclick="login()">Giriş Yap</button>
-
-  <p id="msg" style="color: red;"></p>
-
-  <script>
-    // Eğer zaten giriş yapılmışsa, direk dashboard'a yönlendir
-    if (localStorage.getItem("username")) {
-      window.location.href = "/dashboard.html";
-    }
-
-    async function register() {
-      const email = document.getElementById("reg-email").value.trim();
-      const username = document.getElementById("reg-username").value.trim();
-      const password = document.getElementById("reg-password").value.trim();
-
-      if (!email || !username || !password) {
-        document.getElementById("msg").innerText = "Lütfen tüm alanları doldurun.";
-        return;
-      }
-
-      const res = await fetch("/.netlify/functions/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, username, password }),
-      });
-
-      const text = await res.text();
-      document.getElementById("msg").innerText = text;
-    }
-
-    async function login() {
-      const identifier = document.getElementById("log-identifier").value.trim();
-      const password = document.getElementById("log-password").value.trim();
-
-      if (!identifier || !password) {
-        document.getElementById("msg").innerText = "Lütfen tüm alanları doldurun.";
-        return;
-      }
-
-      try {
-        const res = await fetch("/.netlify/functions/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ identifier, password }),
-        });
-
-        const data = await res.json();
-
-        if (res.ok) {
-          // Backend'den dönen username'yi localStorage'a koy
-          localStorage.setItem("username", data.username);
-          document.getElementById("msg").style.color = "green";
-          document.getElementById("msg").innerText = "Giriş başarılı! Yönlendiriliyorsunuz...";
-          setTimeout(() => {
-            window.location.href = "/dashboard.html";
-          }, 1000);
-        } else {
-          document.getElementById("msg").style.color = "red";
-          document.getElementById("msg").innerText = data.message || "Giriş başarısız.";
-        }
-      } catch (err) {
-        document.getElementById("msg").style.color = "red";
-        document.getElementById("msg").innerText = "Sunucu hatası.";
-        console.error(err);
-      }
-    }
-  </script>
+  <h1>Hoş Geldiniz!</h1>
+  <button onclick="window.location.href='register.html'">Kayıt Ol</button>
+  <button onclick="window.location.href='login.html'">Giriş Yap</button>
 </body>
 </html>
