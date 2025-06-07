@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard - Sade</title>
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
+    /* Genel Stil */
     body, html {
         margin: 0;
         padding: 0;
@@ -18,6 +19,7 @@
         overflow: hidden;
     }
 
+    /* Sunucu Çubuğu */
     .server-sidebar {
         width: 72px;
         background-color: #202225;
@@ -38,7 +40,7 @@
         color: #fff;
         font-size: 20px;
         cursor: pointer;
-        transition: border-radius 0.2s, background-color 0.2s;
+        transition: 0.2s;
         flex-shrink: 0;
     }
     .server-icon:hover {
@@ -51,15 +53,14 @@
         font-size: 24px;
     }
     .server-icon.add-server {
-        background-color: #36393f;
         color: #43b581;
-        font-size: 24px;
     }
     .server-icon.active {
         border-radius: 30%;
         background-color: #5865f2;
     }
 
+    /* Ana Yan Menü */
     .main-sidebar {
         width: 240px;
         background-color: #2f3136;
@@ -71,19 +72,15 @@
         border-bottom: 1px solid #292b2f;
         font-size: 18px;
         font-weight: 600;
-        color: #dcddde;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
     }
     .main-sidebar-menu {
-        padding: 10px 12px;
         flex-grow: 1;
+        padding: 10px 12px;
         overflow-y: auto;
     }
     .main-sidebar-menu button {
         width: 100%;
-        background-color: transparent;
+        background: none;
         border: none;
         color: #8e9297;
         padding: 8px 10px;
@@ -94,7 +91,6 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        margin-bottom: 2px;
     }
     .main-sidebar-menu button:hover {
         background-color: #36393f;
@@ -105,6 +101,7 @@
         color: #dcddde;
     }
 
+    /* Kullanıcı Paneli */
     .user-panel {
         background-color: #292b2f;
         padding: 8px 12px;
@@ -126,48 +123,44 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        color: white;
+        color: #fff;
         font-size: 14px;
-        flex-shrink: 0;
         text-transform: uppercase;
     }
     .user-status-icon {
         width: 8px;
         height: 8px;
         background-color: #43b581;
-        border-radius: 50%;
         border: 2px solid #2f3136;
+        border-radius: 50%;
         position: absolute;
         bottom: 0;
         right: 0;
     }
-    .user-panel .user-info {
-        display: flex;
-        flex-direction: column;
+    .user-info {
         flex-grow: 1;
     }
-    .user-panel .username {
+    .username {
         font-weight: 600;
         font-size: 14px;
-        color: #fff;
     }
-    .user-panel .user-id {
+    .user-id {
         font-size: 12px;
         color: #b9bbbe;
     }
-    .user-panel .controls button {
+    .controls button {
         background: none;
         border: none;
         color: #b9bbbe;
         font-size: 20px;
         cursor: pointer;
         padding: 4px;
-        transition: color 0.2s;
     }
-    .user-panel .controls button:hover {
+    .controls button:hover {
         color: #fff;
     }
 
+    /* İçerik Alanı */
     .main-content {
         flex-grow: 1;
         background-color: #36393f;
@@ -178,63 +171,25 @@
         background-color: #36393f;
         padding: 10px 20px;
         border-bottom: 1px solid #202225;
-        display: flex;
-        align-items: center;
-        gap: 10px;
         font-size: 18px;
         font-weight: 600;
-        color: #fff;
+        display: flex;
+        align-items: center;
     }
     .main-content-area {
         flex-grow: 1;
         padding: 30px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
         text-align: center;
         overflow-y: auto;
     }
     .welcome-message {
         font-size: 32px;
         font-weight: 700;
-        color: #fff;
         margin-bottom: 20px;
     }
     .sub-message {
         font-size: 18px;
         color: #b9bbbe;
-    }
-
-    ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-    }
-    ::-webkit-scrollbar-track {
-        background: #2f3136;
-    }
-    ::-webkit-scrollbar-thumb {
-        background: #202225;
-        border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-        background: #18191c;
-    }
-
-    .material-icons {
-        font-family: 'Material Icons';
-        font-weight: normal;
-        font-style: normal;
-        display: inline-block;
-        line-height: 1;
-        text-transform: none;
-        letter-spacing: normal;
-        word-wrap: normal;
-        white-space: nowrap;
-        direction: ltr;
-        -webkit-font-feature-settings: 'liga';
-        -webkit-font-smoothing: antialiased;
-        color: inherit;
     }
 
     input[type="text"] {
@@ -245,7 +200,6 @@
         max-width: 400px;
         font-size: 16px;
     }
-
     button.friend-request-btn {
         padding: 6px 12px;
         border-radius: 4px;
@@ -253,75 +207,42 @@
         background-color: #5865f2;
         color: white;
         cursor: pointer;
-        transition: background-color 0.3s;
         margin-left: 10px;
     }
     button.friend-request-btn:hover {
         background-color: #4752c4;
     }
 
-    @media (max-width: 768px) {
-        body {
-            flex-direction: column;
-            height: auto;
-            overflow-y: auto;
-        }
-        .server-sidebar {
-            width: 100%;
-            height: auto;
-            flex-direction: row;
-            justify-content: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #202225;
-            flex-wrap: wrap;
-        }
-        .main-sidebar {
-            width: 100%;
-            height: auto;
-            border-left: none;
-            border-bottom: 1px solid #202225;
-        }
-        .main-sidebar-menu {
-            padding: 0 12px;
-        }
-        .user-panel {
-            border-top: none;
-            border-bottom: 1px solid #202225;
-        }
-        .main-content-header {
-            border-top: 1px solid #202225;
-        }
-        .main-content-area {
-            padding: 15px;
-        }
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #202225;
+        border-radius: 4px;
     }
 </style>
 </head>
 <body>
 
+    <!-- Sunucu Çubuğu -->
     <div class="server-sidebar">
         <div class="server-icon home" title="Ana Sayfa"><i class="material-icons">home</i></div>
         <div class="server-icon" title="Sunucu 1">S1</div>
         <div class="server-icon" title="Sunucu 2">S2</div>
         <div class="server-icon active" title="Aktif Sunucu">S3</div>
-        <div class="server-icon" title="Sunucu Ekle"><i class="material-icons">add</i></div>
-        <div class="server-icon add-server" title="Sunucuları Keşfet"><i class="material-icons">explore</i></div>
+        <div class="server-icon"><i class="material-icons">add</i></div>
+        <div class="server-icon add-server" title="Keşfet"><i class="material-icons">explore</i></div>
     </div>
 
+    <!-- Ana Yan Menü -->
     <div class="main-sidebar">
-        <div class="sidebar-header">
-            <span>Uygulama Adı</span>
-            <button style="background: none; border: none; color: #b9bbbe; font-size: 20px; cursor: pointer; display: none;">
-                <i class="material-icons">search</i>
-            </button>
-        </div>
+        <div class="sidebar-header">Uygulama Adı</div>
         <div class="main-sidebar-menu">
             <button id="profileBtn"><i class="material-icons">person</i>Profil</button>
             <button id="friendsBtn"><i class="material-icons">group</i>Arkadaşlar</button>
             <button id="settingsBtn"><i class="material-icons">settings</i>Ayarlar</button>
-            <button id="logoutBtn"><i class="material-icons">logout</i>Çıkış Yap</button>
+            <button id="logoutBtn"><i class="material-icons">logout</i>Çıkış</button>
         </div>
-
         <div class="user-panel">
             <div class="avatar-wrapper">
                 <div class="user-avatar" id="current-user-avatar"></div>
@@ -333,11 +254,12 @@
             </div>
             <div class="controls">
                 <button id="settingsControlBtn" title="Ayarlar"><i class="material-icons">settings</i></button>
-                <button id="logoutControlBtn" title="Çıkış Yap"><i class="material-icons">logout</i></button>
+                <button id="logoutControlBtn" title="Çıkış"><i class="material-icons">logout</i></button>
             </div>
         </div>
     </div>
 
+    <!-- Ana İçerik -->
     <div class="main-content">
         <div class="main-content-header" id="main-header-title">Profil</div>
         <div class="main-content-area" id="main-content-area">
@@ -347,77 +269,51 @@
     </div>
 
 <script>
-    // Kullanıcı bilgilerini localStorage'dan alalım
     const username = localStorage.getItem("username") || "Misafir";
     const userid = localStorage.getItem("userid") || "0000";
 
-    // Başlangıçta kullanıcı bilgilerini gösterelim
     document.getElementById("current-username").innerText = username;
     document.getElementById("current-userid").innerText = "#" + userid;
     document.getElementById("user-displayname").innerText = username;
-
-    // Kullanıcının avatarı için ilk harfi gösterelim
     document.getElementById("current-user-avatar").innerText = username.charAt(0).toUpperCase();
 
-    // Menü butonları referansları
     const profileBtn = document.getElementById("profileBtn");
     const friendsBtn = document.getElementById("friendsBtn");
     const settingsBtn = document.getElementById("settingsBtn");
     const logoutBtn = document.getElementById("logoutBtn");
-
     const mainHeaderTitle = document.getElementById("main-header-title");
     const mainContentArea = document.getElementById("main-content-area");
 
-    // Profil sayfasını göster
     function showProfile() {
         mainHeaderTitle.innerText = "Profil";
         mainContentArea.innerHTML = `
-            <div class="welcome-message">Hoşgeldiniz, <span id="user-displayname-profile">${username}</span>!</div>
+            <div class="welcome-message">Hoşgeldiniz, <span>${username}</span>!</div>
             <div class="sub-message">Burada profil bilgilerinizi görüntüleyebilir ve düzenleyebilirsiniz.</div>
         `;
     }
 
-    // Ayarlar sayfasını göster
-    function showSettings() {
-        mainHeaderTitle.innerText = "Ayarlar";
-        mainContentArea.innerHTML = `
-            <h2>Ayarlar</h2>
-            <p>Burada uygulama ayarlarını yapabilirsiniz.</p>
-        `;
-    }
-
-    // Arkadaşlar sayfasını göster (arama + istek gönderme)
     function showFriends() {
         mainHeaderTitle.innerText = "Arkadaşlar";
         mainContentArea.innerHTML = `
             <div>
-                <input type="text" id="searchInput" placeholder="Kullanıcı adı veya email gir" />
+                <input type="text" id="searchInput" placeholder="Kullanıcı adı veya email gir">
                 <button id="searchBtn">Ara</button>
-                <ul id="results" style="margin-top: 20px; list-style: none; padding: 0;"></ul>
+                <ul id="results" style="list-style: none; margin-top: 20px;"></ul>
             </div>
         `;
-
         document.getElementById("searchBtn").addEventListener("click", searchFriends);
     }
 
-    // Arkadaş arama fonksiyonu
     async function searchFriends() {
         const query = document.getElementById("searchInput").value.trim();
-        if (!query) return alert("Arama alanı boş olamaz.");
+        if (!query) return alert("Arama alanı boş.");
 
         try {
             const res = await fetch("/.netlify/functions/friend-search", {
                 method: "POST",
                 body: JSON.stringify({ query }),
             });
-
-            if (!res.ok) {
-                alert("Arama başarısız.");
-                return;
-            }
-
             const results = await res.json();
-
             const list = document.getElementById("results");
             list.innerHTML = "";
 
@@ -427,63 +323,54 @@
             }
 
             results.forEach((user) => {
-                if (user.username === username) return; // Kendini gösterme
-
+                if (user.username === username) return;
                 const li = document.createElement("li");
-                li.style.marginBottom = "10px";
                 li.textContent = `${user.username} (${user.email}) `;
-
                 const btn = document.createElement("button");
                 btn.textContent = "Arkadaş İsteği Gönder";
                 btn.className = "friend-request-btn";
                 btn.onclick = () => sendFriendRequest(user.username);
-
                 li.appendChild(btn);
                 list.appendChild(li);
             });
-
         } catch (err) {
-            alert("Bir hata oluştu: " + err.message);
+            alert("Hata: " + err.message);
         }
     }
 
-    // Arkadaş isteği gönderme fonksiyonu
     async function sendFriendRequest(toUsername) {
         try {
             const res = await fetch("/.netlify/functions/friend-request", {
                 method: "POST",
                 body: JSON.stringify({ requester: username, toUsername }),
             });
-
-            if (!res.ok) {
-                alert("İstek gönderilemedi.");
-                return;
-            }
-
             const data = await res.json();
             alert(data.message);
         } catch (err) {
-            alert("Bir hata oluştu: " + err.message);
+            alert("Hata: " + err.message);
         }
     }
 
-    // Çıkış yapma işlemi (örnek: localStorage temizle ve sayfayı yenile)
+    function showSettings() {
+        mainHeaderTitle.innerText = "Ayarlar";
+        mainContentArea.innerHTML = `
+            <h2>Ayarlar</h2>
+            <p>Buradan uygulama ayarlarınızı yönetebilirsiniz.</p>
+        `;
+    }
+
     function logout() {
         localStorage.clear();
         location.reload();
     }
 
-    // Event listener ekle
     profileBtn.addEventListener("click", showProfile);
     friendsBtn.addEventListener("click", showFriends);
     settingsBtn.addEventListener("click", showSettings);
     logoutBtn.addEventListener("click", logout);
-
-    // Kullanıcı panelindeki ayarlar ve çıkış butonları da aynı işlemi yapıyor
     document.getElementById("settingsControlBtn").addEventListener("click", showSettings);
     document.getElementById("logoutControlBtn").addEventListener("click", logout);
 
-    // İlk açılışta profil göster
     showProfile();
 </script>
 
