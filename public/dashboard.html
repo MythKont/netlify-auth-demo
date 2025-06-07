@@ -3,100 +3,89 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Discord Benzeri Dashboard</title>
+<title>Dashboard - Sade</title>
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
-    /* Genel Sıfırlamalar ve Temel Stiller */
     body, html {
         margin: 0;
         padding: 0;
         height: 100vh;
-        font-family: 'Rubik', sans-serif; /* Discord'a yakın bir font */
-        background-color: #36393f; /* Discord ana arka plan rengi */
-        color: #dcddde; /* Genel metin rengi */
-        display: flex; /* Ana layout için flexbox */
-        overflow: hidden; /* Taşmayı engelle */
+        font-family: 'Rubik', sans-serif;
+        background-color: #36393f;
+        color: #dcddde;
+        display: flex;
+        overflow: hidden;
     }
 
-    /* Sol Sunucu/Uygulama İkonları Çubuğu */
     .server-sidebar {
-        width: 72px; /* Genişlik */
-        background-color: #202225; /* Discord'un en sol bar rengi */
+        width: 72px;
+        background-color: #202225;
         display: flex;
         flex-direction: column;
         align-items: center;
         padding: 12px 0;
-        gap: 8px; /* İkonlar arası boşluk */
+        gap: 8px;
     }
     .server-icon {
         width: 48px;
         height: 48px;
-        background-color: #36393f; /* İkonların varsayılan arka planı */
-        border-radius: 50%; /* Yuvarlak ikonlar */
+        background-color: #36393f;
+        border-radius: 50%;
         display: flex;
         justify-content: center;
         align-items: center;
         color: #fff;
         font-size: 20px;
         cursor: pointer;
-        transition: border-radius 0.2s, background-color 0.2s; /* Hover efekti */
-        flex-shrink: 0; /* Küçülmesini engelle */
+        transition: border-radius 0.2s, background-color 0.2s;
+        flex-shrink: 0;
     }
     .server-icon:hover {
-        border-radius: 30%; /* Hover'da hafif kareleşme */
-        background-color: #5865f2; /* Discord mavisi */
+        border-radius: 30%;
+        background-color: #5865f2;
     }
     .server-icon.home {
-        background-color: #5865f2; /* "Arkadaşlar" ikonu için farklı renk */
-        border-radius: 30%; /* Başlangıçta karemsi */
+        background-color: #5865f2;
+        border-radius: 30%;
         font-size: 24px;
     }
     .server-icon.add-server {
-        background-color: #36393f; /* Sunucu ekle ikonu */
-        color: #43b581; /* Yeşil artı işareti */
+        background-color: #36393f;
+        color: #43b581;
         font-size: 24px;
     }
     .server-icon.active {
-        border-radius: 30%; /* Aktif ikonun görünümü */
+        border-radius: 30%;
         background-color: #5865f2;
     }
 
-    /* Sol Navigasyon Alanı (Arkadaşlar, DM'ler vb.) */
     .main-sidebar {
-        width: 240px; /* Discord'daki sol panel genişliği */
-        background-color: #2f3136; /* Orta sol panel rengi */
+        width: 240px;
+        background-color: #2f3136;
         display: flex;
         flex-direction: column;
     }
-    .search-bar-container {
+    .sidebar-header {
         padding: 10px 12px;
         border-bottom: 1px solid #292b2f;
-    }
-    .search-bar {
-        width: 100%;
-        padding: 8px 10px;
-        border-radius: 4px;
-        border: none;
-        background-color: #202225; /* Arama çubuğu arka planı */
+        font-size: 18px;
+        font-weight: 600;
         color: #dcddde;
-        font-size: 14px;
-        outline: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
     }
-    .search-bar::placeholder {
-        color: #8e9297;
-    }
-
     .main-sidebar-menu {
         padding: 10px 12px;
-        flex-grow: 1; /* Kalan alanı doldur */
-        overflow-y: auto; /* İçerik taşarsa kaydırma çubuğu */
+        flex-grow: 1;
+        overflow-y: auto;
     }
     .main-sidebar-menu button {
         width: 100%;
         background-color: transparent;
         border: none;
-        color: #8e9297; /* Pasif menü rengi */
+        color: #8e9297;
         padding: 8px 10px;
         text-align: left;
         border-radius: 4px;
@@ -108,85 +97,54 @@
         margin-bottom: 2px;
     }
     .main-sidebar-menu button:hover {
-        background-color: #36393f; /* Hover rengi */
+        background-color: #36393f;
         color: #dcddde;
     }
     .main-sidebar-menu button.active {
-        background-color: #4f545c; /* Aktif menü rengi */
+        background-color: #4f545c;
         color: #dcddde;
-    }
-    .menu-category {
-        color: #8e9297;
-        font-size: 12px;
-        font-weight: 600;
-        padding: 10px 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .menu-category-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 10px;
-        margin-bottom: 2px;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.2s;
-    }
-    .menu-category-item:hover {
-        background-color: #36393f;
-    }
-    .menu-category-item.new-dm {
-        color: #43b581; /* Yeni DM ekle butonu için yeşil */
-    }
-    .user-avatar {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background-color: #5865f2; /* Varsayılan avatar rengi */
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        color: white;
-        font-size: 14px;
-        flex-shrink: 0;
-        text-transform: uppercase; /* Avatar textini büyük harf yapar */
-    }
-    .user-name {
-        flex-grow: 1;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        color: #dcddde;
-    }
-    .user-status-icon {
-        width: 8px;
-        height: 8px;
-        background-color: #43b581; /* Online durumu için yeşil */
-        border-radius: 50%;
-        border: 2px solid #2f3136; /* Arka plan renginde border */
-        position: absolute;
-        bottom: 0;
-        right: 0;
-    }
-    .avatar-wrapper {
-        position: relative;
     }
 
-    /* Sol Alt Kullanıcı Bilgisi ve Kontroller */
     .user-panel {
-        background-color: #292b2f; /* Panel arka planı */
+        background-color: #292b2f;
         padding: 8px 12px;
         display: flex;
         align-items: center;
         gap: 8px;
         border-top: 1px solid #202225;
     }
-    .user-panel .avatar-wrapper {
+    .avatar-wrapper {
         position: relative;
         width: 32px;
         height: 32px;
+    }
+    .user-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: #5865f2;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-size: 14px;
+        flex-shrink: 0;
+        text-transform: uppercase;
+    }
+    .user-status-icon {
+        width: 8px;
+        height: 8px;
+        background-color: #43b581;
+        border-radius: 50%;
+        border: 2px solid #2f3136;
+        position: absolute;
+        bottom: 0;
+        right: 0;
+    }
+    .user-panel .user-info {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
     }
     .user-panel .username {
         font-weight: 600;
@@ -201,7 +159,7 @@
         background: none;
         border: none;
         color: #b9bbbe;
-        font-size: 18px;
+        font-size: 20px;
         cursor: pointer;
         padding: 4px;
         transition: color 0.2s;
@@ -210,16 +168,14 @@
         color: #fff;
     }
 
-
-    /* Ana İçerik Alanı (Ortadaki Büyük Kısım) */
     .main-content {
-        flex-grow: 1; /* Kalan tüm alanı kapla */
-        background-color: #36393f; /* Ana içerik arka planı */
+        flex-grow: 1;
+        background-color: #36393f;
         display: flex;
         flex-direction: column;
     }
     .main-content-header {
-        background-color: #36393f; /* Header arka planı */
+        background-color: #36393f;
         padding: 10px 20px;
         border-bottom: 1px solid #202225;
         display: flex;
@@ -229,169 +185,26 @@
         font-weight: 600;
         color: #fff;
     }
-    .main-content-header .status-indicator {
-        width: 8px;
-        height: 8px;
-        background-color: #43b581; /* Online durumu için yeşil */
-        border-radius: 50%;
-    }
-
-    .friends-list-container {
+    .main-content-area {
         flex-grow: 1;
-        padding: 20px;
-        overflow-y: auto;
-    }
-    .friends-list-header {
+        padding: 30px;
         display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 15px;
-        margin-bottom: 20px;
-        border-bottom: 1px solid #202225;
-        padding-bottom: 15px;
-    }
-    .friends-list-header button {
-        background-color: #4f545c;
-        border: none;
-        padding: 8px 15px;
-        border-radius: 4px;
-        color: #dcddde;
-        font-size: 14px;
-        cursor: pointer;
-        transition: background-color 0.2s;
-    }
-    .friends-list-header button:hover {
-        background-color: #5865f2;
-    }
-    .friends-list-header button.add-friend {
-        background-color: #5865f2;
-    }
-    .friends-list-header span {
-        font-weight: 500;
-        color: #8e9297;
-        margin-left: auto; /* Sağdaki metni sağa yaslar */
-    }
-
-    .friends-search {
-        width: 100%;
-        padding: 8px 12px;
-        border-radius: 4px;
-        border: none;
-        background-color: #202225;
-        color: #dcddde;
-        font-size: 14px;
-        outline: none;
-        margin-bottom: 20px;
-    }
-    .friends-search::placeholder {
-        color: #8e9297;
-    }
-
-    .friends-category {
-        color: #8e9297;
-        font-size: 12px;
-        font-weight: 600;
-        margin-top: 20px;
-        margin-bottom: 10px;
-    }
-    .friend-item {
-        display: flex;
-        align-items: center;
-        padding: 10px 0;
-        border-bottom: 1px solid #202225;
-        gap: 10px;
-    }
-    .friend-item:last-child {
-        border-bottom: none;
-    }
-    .friend-item .user-name {
-        font-weight: 500;
-    }
-    .friend-item .status-text {
-        font-size: 13px;
-        color: #8e9297;
-    }
-    .friend-item .action-buttons {
-        margin-left: auto;
-        display: flex;
-        gap: 8px;
-    }
-    .friend-item .action-buttons button {
-        background-color: #4f545c;
-        border: none;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        color: #b9bbbe;
-        font-size: 16px;
-        cursor: pointer;
-        transition: background-color 0.2s, color 0.2s;
-    }
-    .friend-item .action-buttons button:hover {
-        background-color: #5865f2;
-        color: #fff;
-    }
-    .friend-item .action-buttons button.red-hover:hover {
-        background-color: #ed4245; /* Kırmızı renk (örneğin engelle/kaldır için) */
-    }
-
-    /* Sağ Taraf (Şimdi Aktif / Online Kullanıcılar) */
-    .right-sidebar {
-        width: 240px; /* Sağ panel genişliği */
-        background-color: #2f3136; /* Sağ panel arka planı */
-        padding: 10px 12px;
-        border-left: 1px solid #202225;
-        flex-shrink: 0; /* Küçülmesini engelle */
-        overflow-y: auto; /* İçerik taşarsa kaydırma çubuğu */
-    }
-    .right-sidebar-title {
-        color: #8e9297;
-        font-size: 12px;
-        font-weight: 600;
-        padding: 10px 0;
-        text-transform: uppercase;
-    }
-    .active-user-item {
-        display: flex;
-        align-items: center;
-        padding: 8px 0;
-        gap: 10px;
-        cursor: pointer;
-        border-radius: 4px;
-        transition: background-color 0.2s;
-    }
-    .active-user-item:hover {
-        background-color: #36393f;
-    }
-    .active-user-item .avatar-wrapper {
-        width: 32px;
-        height: 32px;
-    }
-    .active-user-item .user-info {
-        flex-grow: 1;
-    }
-    .active-user-item .username {
-        font-weight: 500;
-        font-size: 15px;
-        color: #dcddde;
-    }
-    .active-user-item .game-status {
-        font-size: 12px;
-        color: #8e9297;
-    }
-    .active-user-item .game-icon {
-        width: 20px;
-        height: 20px;
-        border-radius: 4px;
-        background-color: #5865f2;
-        color: white;
-        display: flex;
         justify-content: center;
-        align-items: center;
-        font-size: 12px;
-        flex-shrink: 0;
+        text-align: center;
+    }
+    .welcome-message {
+        font-size: 32px;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 20px;
+    }
+    .sub-message {
+        font-size: 18px;
+        color: #b9bbbe;
     }
 
-    /* Scrollbar Stilleri */
     ::-webkit-scrollbar {
         width: 8px;
         height: 8px;
@@ -407,12 +220,10 @@
         background: #18191c;
     }
 
-    /* İkonlar için placeholder */
     .material-icons {
         font-family: 'Material Icons';
         font-weight: normal;
         font-style: normal;
-        font-size: 24px; /* Varsayılan ikon boyutu */
         display: inline-block;
         line-height: 1;
         text-transform: none;
@@ -422,44 +233,32 @@
         direction: ltr;
         -webkit-font-feature-settings: 'liga';
         -webkit-font-smoothing: antialiased;
-        color: #b9bbbe; /* Varsayılan ikon rengi */
-    }
-    /* Mikrofon/Kulaklık ikonları için renk ayarı */
-    .user-panel .controls .material-icons {
-        font-size: 20px; /* Paneldeki ikonlar daha küçük */
-    }
-
-    /* Küçük ekranlar için responsive ayarlar */
-    @media (max-width: 1024px) {
-        /* Sağ sidebar'ı gizleyebiliriz veya daha küçük yapabiliriz */
-        .right-sidebar {
-            width: 180px;
-        }
+        color: inherit;
     }
 
     @media (max-width: 768px) {
         body {
-            flex-direction: column; /* Küçük ekranlarda dikey sırala */
+            flex-direction: column;
             height: auto;
-            overflow-y: auto; /* Dikey kaydırmayı etkinleştir */
+            overflow-y: auto;
         }
         .server-sidebar {
             width: 100%;
             height: auto;
-            flex-direction: row; /* İkonları yatay sırala */
+            flex-direction: row;
             justify-content: center;
             padding: 8px 0;
             border-bottom: 1px solid #202225;
-            flex-wrap: wrap; /* İkonlar sığmazsa alt satıra geçsin */
+            flex-wrap: wrap;
         }
-        .main-sidebar, .right-sidebar {
-            width: 100%; /* Tam genişlik */
+        .main-sidebar {
+            width: 100%;
             height: auto;
-            border-left: none; /* Yan borderları kaldır */
+            border-left: none;
             border-bottom: 1px solid #202225;
         }
         .main-sidebar-menu {
-            padding: 0 12px; /* İç paddingi ayarla */
+            padding: 0 12px;
         }
         .user-panel {
             border-top: none;
@@ -468,9 +267,8 @@
         .main-content-header {
             border-top: 1px solid #202225;
         }
-        .right-sidebar {
-            /* Mobil'de sağ sidebar'ı tamamen gizleyebilir veya en alta taşıyabiliriz */
-            display: none; /* Şimdilik gizleyelim */
+        .main-content-area {
+            padding: 15px;
         }
     }
 </style>
@@ -478,236 +276,125 @@
 <body>
 
     <div class="server-sidebar">
-        <div class="server-icon home" title="Arkadaşlar"><i class="material-icons">home</i></div>
+        <div class="server-icon home" title="Ana Sayfa"><i class="material-icons">home</i></div>
         <div class="server-icon" title="Sunucu 1">S1</div>
         <div class="server-icon" title="Sunucu 2">S2</div>
-        <div class="server-icon active" title="Sunucu 3">S3</div> <div class="server-icon" title="Sunucu Ekle"><i class="material-icons">add</i></div>
+        <div class="server-icon active" title="Aktif Sunucu">S3</div>
+        <div class="server-icon" title="Sunucu Ekle"><i class="material-icons">add</i></div>
         <div class="server-icon add-server" title="Sunucuları Keşfet"><i class="material-icons">explore</i></div>
     </div>
 
     <div class="main-sidebar">
-        <div class="search-bar-container">
-            <input type="text" class="search-bar" placeholder="Sohbet bul ya da başlat" />
+        <div class="sidebar-header">
+            <span>Uygulama Adı</span>
+            <button style="background: none; border: none; color: #b9bbbe; font-size: 20px; cursor: pointer; display: none;">
+                <i class="material-icons">search</i>
+            </button>
         </div>
         <div class="main-sidebar-menu">
-            <button class="active"><i class="material-icons">people</i>Arkadaşlar</button>
-            <button><i class="material-icons">whatshot</i>Nitro</button>
-            <button><i class="material-icons">storefront</i>Mağaza</button>
-
-            <div class="menu-category">DİREKT MESAJLAR <button class="new-dm"><i class="material-icons">add</i></button></div>
-            <div class="menu-category-item">
-                <div class="avatar-wrapper">
-                    <div class="user-avatar">SA</div>
-                    <div class="user-status-icon"></div>
-                </div>
-                <div class="user-name">SAK SAK SAK</div>
-            </div>
-            <div class="menu-category-item">
-                <div class="avatar-wrapper">
-                    <div class="user-avatar">GA</div>
-                    <div class="user-status-icon" style="background-color: #faa61a;"></div> </div>
-                <div class="user-name">GAPE HORN</div>
-            </div>
-            <div class="menu-category-item">
-                <div class="avatar-wrapper">
-                    <div class="user-avatar">EN</div>
-                    <div class="user-status-icon" style="background-color: #ed4245;"></div> </div>
-                <div class="user-name">ENOUGH!</div>
-            </div>
-            <div class="menu-category-item">
-                <div class="avatar-wrapper">
-                    <div class="user-avatar">Mi</div>
-                    <div class="user-status-icon"></div>
-                </div>
-                <div class="user-name">Mitrilih</div>
-            </div>
-            <div class="menu-category-item">
-                <div class="avatar-wrapper">
-                    <div class="user-avatar">Ro</div>
-                    <div class="user-status-icon"></div>
-                </div>
-                <div class="user-name">Roblox</div>
-            </div>
-            </div>
+            <button id="profileBtn"><i class="material-icons">person</i>Profil</button>
+            <button id="settingsBtn"><i class="material-icons">settings</i>Ayarlar</button>
+            <button id="logoutBtn"><i class="material-icons">logout</i>Çıkış Yap</button>
+        </div>
 
         <div class="user-panel">
             <div class="avatar-wrapper">
-                <div class="user-avatar" id="current-user-avatar"></div> <div class="user-status-icon"></div>
+                <div class="user-avatar" id="current-user-avatar"></div>
+                <div class="user-status-icon"></div>
             </div>
             <div class="user-info">
-                <div class="username" id="current-username">...</div>
-                <div class="user-id">#1234</div> </div>
+                <div class="username" id="current-username"></div>
+                <div class="user-id">#1234</div>
+            </div>
             <div class="controls">
                 <button title="Mikrofon Sustur/Aç"><i class="material-icons">mic</i></button>
                 <button title="Kulaklık Sustur/Aç"><i class="material-icons">headset_mic</i></button>
-                <button id="settingsBtn" title="Kullanıcı Ayarları"><i class="material-icons">settings</i></button>
+                <button id="userSettingsBtn" title="Kullanıcı Ayarları"><i class="material-icons">settings</i></button>
             </div>
         </div>
     </div>
 
     <div class="main-content">
         <div class="main-content-header">
-            <i class="material-icons">people</i> Arkadaşlar
-            <div style="flex-grow: 1;"></div> <button title="Gelen Kutusu"><i class="material-icons">inbox</i></button>
-            <button title="Yardım"><i class="material-icons">help_outline</i></button>
+            <span id="main-header-title">Ana Sayfa</span>
+            <div style="flex-grow: 1;"></div>
         </div>
 
-        <div class="friends-list-container">
-            <div class="friends-list-header">
-                <button>Çevrimiçi</button>
-                <button>Tümü</button>
-                <button>Bekleyen</button>
-                <button>Engellenen</button>
-                <button class="add-friend">Arkadaş Ekle</button>
-                <span id="online-friends-count">Çevrimiçi — 0</span>
-            </div>
-
-            <input type="text" class="friends-search" placeholder="Ara" />
-
-            <div class="friends-category">Çevrimiçi — 3</div>
-            <div class="friend-item">
-                <div class="avatar-wrapper">
-                    <div class="user-avatar">er</div>
-                    <div class="user-status-icon"></div>
-                </div>
-                <div class="user-info">
-                    <div class="user-name">erme</div>
-                    <div class="status-text">Roblox oynuyor</div>
-                </div>
-                <div class="action-buttons">
-                    <button title="Mesaj Gönder"><i class="material-icons">chat</i></button>
-                    <button title="Daha Fazla Seçenek"><i class="material-icons">more_vert</i></button>
-                </div>
-            </div>
-            <div class="friend-item">
-                <div class="avatar-wrapper">
-                    <div class="user-avatar">Tr</div>
-                    <div class="user-status-icon"></div>
-                </div>
-                <div class="user-info">
-                    <div class="user-name">Trident</div>
-                    <div class="status-text">Roblox oynuyor</div>
-                </div>
-                <div class="action-buttons">
-                    <button title="Mesaj Gönder"><i class="material-icons">chat</i></button>
-                    <button title="Daha Fazla Seçenek"><i class="material-icons">more_vert</i></button>
-                </div>
-            </div>
-            <div class="friend-item">
-                <div class="avatar-wrapper">
-                    <div class="user-avatar">T</div>
-                    <div class="user-status-icon" style="background-color: #faa61a;"></div> </div>
-                <div class="user-info">
-                    <div class="user-name">Tresh</div>
-                    <div class="status-text">Rahatsız Etmeyin</div>
-                </div>
-                 <div class="action-buttons">
-                    <button title="Mesaj Gönder"><i class="material-icons">chat</i></button>
-                    <button title="Daha Fazla Seçenek"><i class="material-icons">more_vert</i></button>
-                </div>
-            </div>
-
-            <div class="friends-category">Çevrimdışı — 2</div>
-            <div class="friend-item">
-                <div class="avatar-wrapper">
-                    <div class="user-avatar">Me</div>
-                    <div class="user-status-icon" style="background-color: #ed4245;"></div>
-                </div>
-                <div class="user-info">
-                    <div class="user-name">Mert</div>
-                    <div class="status-text">Çevrimdışı</div>
-                </div>
-                <div class="action-buttons">
-                    <button title="Mesaj Gönder"><i class="material-icons">chat</i></button>
-                    <button title="Daha Fazla Seçenek"><i class="material-icons">more_vert</i></button>
-                </div>
-            </div>
-            <div class="friend-item">
-                <div class="avatar-wrapper">
-                    <div class="user-avatar">Ay</div>
-                    <div class="user-status-icon" style="background-color: #ed4245;"></div>
-                </div>
-                <div class="user-info">
-                    <div class="user-name">Ayşe</div>
-                    <div class="status-text">Çevrimdışı</div>
-                </div>
-                <div class="action-buttons">
-                    <button title="Mesaj Gönder"><i class="material-icons">chat</i></button>
-                    <button title="Daha Fazla Seçenek"><i class="material-icons">more_vert</i></button>
-                </div>
-            </div>
-
-            </div>
-    </div>
-
-    <div class="right-sidebar">
-        <div class="right-sidebar-title">ŞİMDİ AKTİF</div>
-        <div class="active-user-item">
-            <div class="avatar-wrapper">
-                <div class="user-avatar">er</div>
-                <div class="user-status-icon"></div>
-            </div>
-            <div class="user-info">
-                <div class="username">erme</div>
-                <div class="game-status">Roblox - 30dk</div>
-            </div>
-            <div class="game-icon">R</div>
-        </div>
-        <div class="active-user-item">
-            <div class="avatar-wrapper">
-                <div class="user-avatar">Tr</div>
-                <div class="user-status-icon"></div>
-            </div>
-            <div class="user-info">
-                <div class="username">Trident</div>
-                <div class="game-status">Roblox - 9dk</div>
-            </div>
-            <div class="game-icon">R</div>
-        </div>
-        <div class="right-sidebar-title" style="margin-top: 20px;">ÇEVRİMDIŞI</div>
-        <div class="active-user-item">
-            <div class="avatar-wrapper">
-                <div class="user-avatar">Se</div>
-                <div class="user-status-icon" style="background-color: #ed4245;"></div>
-            </div>
-            <div class="user-info">
-                <div class="username">Selin</div>
-                <div class="game-status">Çevrimdışı</div>
-            </div>
+        <div class="main-content-area">
+            <div class="welcome-message">Hoşgeldin, <span id="welcome-username"></span>!</div>
+            <div class="sub-message">Bu senin sadeleştirilmiş dashboard'un.</div>
+            <div class="sub-message">Sol menüdeki butonları kullanarak farklı sayfalara gidebilirsin.</div>
         </div>
     </div>
 
     <script>
-        // Kullanıcı adını localStorage'dan al ve göster
         const username = localStorage.getItem("username");
         if (!username) {
-            // Giriş yapılmamışsa login sayfasına yönlendir
             location.href = "/login.html";
         } else {
             document.getElementById("current-username").innerText = username;
-            // Avatar için kullanıcı adının ilk iki harfini kullan
+            document.getElementById("welcome-username").innerText = username;
             document.getElementById("current-user-avatar").innerText = username.substring(0, 2).toUpperCase();
         }
 
-        // Çıkış Yap butonu
         document.getElementById("logoutBtn").addEventListener("click", () => {
             localStorage.removeItem("username");
             location.href = "/login.html";
         });
 
-        // Profil ve Ayarlar butonları için Discord'a uygun yere taşıdım ve alertleri kaldırdım
-        // Ayarlar butonu user-panel içinde settingsBtn olarak tanımlandı.
-        document.getElementById("settingsBtn").addEventListener("click", () => {
-            alert('Ayarlar sayfası yakında!');
+        document.getElementById("profileBtn").addEventListener("click", () => {
+            document.getElementById("main-header-title").innerText = "Profilim";
+            document.querySelector(".main-content-area").innerHTML = `
+                <div class="welcome-message">Profil Sayfası</div>
+                <div class="sub-message">Kullanıcı adı: ${username}</div>
+                <div class="sub-message">Burada profil bilgilerini düzenleyebilirsin.</div>
+            `;
         });
 
-        // Online arkadaş sayısını dinamik güncelleme (örnek)
-        // Gerçek bir uygulamada bu, sunucudan gelen verilere göre güncellenmelidir.
-        function updateOnlineFriendsCount() {
-            const onlineFriends = document.querySelectorAll('.friends-category + .friend-item .user-status-icon[style*="background-color: rgb(67, 181, 129)"], .friends-category + .friend-item .user-status-icon:not([style])'); // Yeşil veya style'ı olmayan (online varsayımı)
-            document.getElementById("online-friends-count").innerText = `Çevrimiçi — ${onlineFriends.length}`;
-        }
-        updateOnlineFriendsCount(); // Sayfa yüklendiğinde bir kez çalıştır
+        document.getElementById("settingsBtn").addEventListener("click", () => {
+            document.getElementById("main-header-title").innerText = "Ayarlar";
+            document.querySelector(".main-content-area").innerHTML = `
+                <div class="welcome-message">Ayarlar Sayfası</div>
+                <div class="sub-message">Burada uygulama ayarlarını yapabilirsin.</div>
+            `;
+        });
+
+        document.getElementById("userSettingsBtn").addEventListener("click", () => {
+            document.getElementById("main-header-title").innerText = "Kullanıcı Ayarları";
+            document.querySelector(".main-content-area").innerHTML = `
+                <div class="welcome-message">Kullanıcı Ayarları</div>
+                <div class="sub-message">Hesap bilgilerini, gizliliği vb. yönet.</div>
+            `;
+        });
+
+        document.querySelector(".server-icon.home").addEventListener("click", () => {
+            document.getElementById("main-header-title").innerText = "Ana Sayfa";
+            document.querySelector(".main-content-area").innerHTML = `
+                <div class="welcome-message">Hoşgeldin, <span id="welcome-username">${username}</span>!</div>
+                <div class="sub-message">Bu senin sadeleştirilmiş dashboard'un.</div>
+                <div class="sub-message">Sol menüdeki butonları kullanarak farklı sayfalara gidebilirsin.</div>
+            `;
+        });
+
+        document.querySelectorAll(".server-icon:not(.home):not(.add-server)").forEach(icon => {
+            icon.addEventListener("click", function() {
+                document.querySelectorAll(".server-icon").forEach(item => item.classList.remove("active"));
+                this.classList.add("active");
+                const serverName = this.title;
+                document.getElementById("main-header-title").innerText = serverName;
+                document.querySelector(".main-content-area").innerHTML = `
+                    <div class="welcome-message">${serverName} Sunucusuna Hoşgeldin!</div>
+                    <div class="sub-message">Bu sunucunun içeriği burada görüntülenecek.</div>
+                `;
+            });
+        });
+
+        document.querySelector(".server-icon.add-server").addEventListener("click", () => {
+             alert('Yeni sunucu ekleme sayfası yakında!');
+        });
+        document.querySelector(".server-icon[title='Sunucuları Keşfet']").addEventListener("click", () => {
+             alert('Sunucuları keşfetme sayfası yakında!');
+        });
     </script>
 
 </body>
