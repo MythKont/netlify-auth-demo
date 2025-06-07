@@ -15,9 +15,8 @@
   <p id="msg" style="color: red;"></p>
 
   <script>
-    // Eğer zaten giriş yapılmışsa, direk dashboard'a yönlendir
     if (localStorage.getItem("username")) {
-      window.location.href = "/dashboard.html";
+      window.location.href = "dashboard.html";
     }
 
     async function register() {

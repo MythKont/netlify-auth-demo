@@ -14,9 +14,8 @@
   <p id="msg" style="color: red;"></p>
 
   <script>
-    // Eğer zaten giriş yapılmışsa, direk dashboard'a yönlendir
     if (localStorage.getItem("username")) {
-      window.location.href = "/dashboard.html";
+      window.location.href = "dashboard.html";
     }
 
     async function login() {
@@ -38,12 +37,11 @@
         const data = await res.json();
 
         if (res.ok) {
-          // Backend'den dönen username'yi localStorage'a koy
           localStorage.setItem("username", data.username);
           document.getElementById("msg").style.color = "green";
           document.getElementById("msg").innerText = "Giriş başarılı! Yönlendiriliyorsunuz...";
           setTimeout(() => {
-            window.location.href = "/dashboard.html";
+            window.location.href = "dashboard.html";
           }, 1000);
         } else {
           document.getElementById("msg").style.color = "red";
