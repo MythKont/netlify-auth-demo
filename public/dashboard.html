@@ -304,171 +304,190 @@
 <div class="main-sidebar">
     <div class="sidebar-header">Menü</div>
     <div class="main-sidebar-menu">
-        <button id="profileBtn" class="active"><i class="material-icons">account_circle</i> Profil</button>
-        <button id="settingsBtn"><i class="material-icons">settings</i> Ayarlar</button>
+        <button id="profileBtn" class="active"><i class="material-icons">person</i> Profil</button>
         <button id="friendsBtn"><i class="material-icons">group</i> Arkadaşlar</button>
+        <button id="settingsBtn"><i class="material-icons">settings</i> Ayarlar</button>
+        <button id="logoutBtn"><i class="material-icons">logout</i> Çıkış</button>
     </div>
-    <div class="user-panel">
+    <div class="user-panel" title="Kullanıcı Paneli">
         <div class="avatar-wrapper">
-            <div class="user-avatar" id="userAvatar">U</div>
-            <div class="user-status-icon"></div>
+            <div class="user-avatar" id="userAvatar"></div>
+            <div class="user-status-icon" title="Çevrimiçi"></div>
         </div>
-        <div class="username" id="usernameDisplay">Kullanıcı</div>
+        <div class="username" id="usernameDisplay"></div>
         <div class="controls">
-            <button title="Bildirimler"><i class="material-icons">notifications</i></button>
-            <button title="Çıkış Yap" id="logoutBtn"><i class="material-icons">logout</i></button>
+            <button id="settingsBtn2" title="Ayarlar"><i class="material-icons">settings</i></button>
+            <button id="logoutBtn2" title="Çıkış"><i class="material-icons">logout</i></button>
         </div>
     </div>
 </div>
 
 <div class="main-content">
-    <div class="main-content-header" id="pageTitle">Profil</div>
-    <div class="main-content-area" id="contentArea">
-        <div class="welcome-message" id="welcomeMessage">Hoşgeldin!</div>
-        <div class="sub-message" id="subMessage">Burada profil bilgilerin görünecek.</div>
+    <div class="main-content-header" id="mainHeaderTitle">Profil</div>
+    <div class="main-content-area" id="mainContentArea">
+        <!-- İçerik buraya gelecek -->
     </div>
 </div>
 
 <script>
-    // Kullanıcı giriş kontrolü
-    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-    if (!currentUser) {
-        window.location.href = "login.html";
+    // LocalStorage'dan kullanıcıyı al (login kontrolü)
+    const storedUser = localStorage.getItem("username");
+    if (!storedUser) {
+        window.location.href = "index.html";
     }
 
-    // DOM elementleri
-    const profileBtn = document.getElementById("profileBtn");
-    const settingsBtn = document.getElementById("settingsBtn");
-    const friendsBtn = document.getElementById("friendsBtn");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const pageTitle = document.getElementById("pageTitle");
-    const contentArea = document.getElementById("contentArea");
-    const usernameDisplay = document.getElementById("usernameDisplay");
-    const userAvatar = document.getElementById("userAvatar");
+    const currentUser = {
+        username: storedUser,
+        status: "online"
+    };
 
-    // Kullanıcı adı ve avatar ayarla
-    usernameDisplay.textContent = currentUser.username;
-    userAvatar.textContent = currentUser.username.charAt(0).toUpperCase();
+    function getAvatarInitials(name) {
+        return name.charAt(0).toUpperCase();
+    }
+    function updateUserPanel() {
+        document.getElementById('userAvatar').textContent = getAvatarInitials(currentUser.username);
+        document.getElementById('usernameDisplay').textContent = currentUser.username;
+    }
+    updateUserPanel();
 
-    // Sidebar buton active durumu
+    const profileBtn = document.getElementById('profileBtn');
+    const friendsBtn = document.getElementById('friendsBtn');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const mainHeaderTitle = document.getElementById('mainHeaderTitle');
+    const mainContentArea = document.getElementById('mainContentArea');
+
     function setActiveButton(button) {
-        [profileBtn, settingsBtn, friendsBtn].forEach(btn => btn.classList.remove("active"));
-        button.classList.add("active");
+        [profileBtn, friendsBtn, settingsBtn].forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
     }
 
-    // Profil sayfası içeriği
-    function showProfile() {
+    function renderProfile() {
+        mainHeaderTitle.innerText = "Profil";
         setActiveButton(profileBtn);
-        pageTitle.textContent = "Profil";
-        contentArea.innerHTML = `
+        mainContentArea.innerHTML = `
             <div class="welcome-message">Hoşgeldin, ${currentUser.username}!</div>
-            <div class="sub-message">Burada profil bilgilerin görünecek.</div>
+            <div class="sub-message">Profil bilgilerin burada görünecek.</div>
         `;
     }
 
-    // Ayarlar sayfası içeriği
-    function showSettings() {
+    function renderSettings() {
+        mainHeaderTitle.innerText = "Ayarlar";
         setActiveButton(settingsBtn);
-        pageTitle.textContent = "Ayarlar";
-        contentArea.innerHTML = `
-            <div class="welcome-message">Ayarlar</div>
-            <div class="sub-message">Burada ayarları değiştirebilirsin.</div>
-        `;
+        mainContentArea.innerHTML = `<div>Burada ayarlarınız yer alacak.</div>`;
     }
 
-    // Arkadaşlar sayfası içeriği
-    function showFriends() {
+    async function renderFriends() {
+        mainHeaderTitle.innerText = "Arkadaş Ekle";
         setActiveButton(friendsBtn);
-        pageTitle.textContent = "Arkadaşlar";
-        contentArea.innerHTML = `
-            <div class="welcome-message">Arkadaşlar</div>
-            <input type="text" id="userSearch" placeholder="Kullanıcı ara..." />
-            <button class="search-btn" id="searchBtn">Ara</button>
-            <ul class="user-search-list" id="userSearchResults"></ul>
+
+        mainContentArea.innerHTML = `
+            <input type="text" id="friendSearchInput" placeholder="Kullanıcı adı ara..." autocomplete="off" />
+            <ul id="searchResults" class="user-search-list"></ul>
             <div id="friendMessage"></div>
         `;
 
-        const userSearch = document.getElementById("userSearch");
-        const searchBtn = document.getElementById("searchBtn");
-        const userSearchResults = document.getElementById("userSearchResults");
-        const friendMessage = document.getElementById("friendMessage");
+        const friendSearchInput = document.getElementById('friendSearchInput');
+        const searchResults = document.getElementById('searchResults');
+        const friendMessage = document.getElementById('friendMessage');
 
-        // Kullanıcı arama fonksiyonu
         async function searchUsers(query) {
-            if (!query) {
-                userSearchResults.innerHTML = "";
+            if (!query) return [];
+            try {
+                const res = await fetch('/.netlify/functions/friend-search', {
+                    method: 'POST',
+                    headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify({ query })
+                });
+                if (!res.ok) return [];
+                return await res.json();
+            } catch (e) {
+                console.error(e);
+                return [];
+            }
+        }
+
+        async function sendFriendRequest(toUsername) {
+            friendMessage.style.color = 'black';
+            friendMessage.textContent = `Arkadaşlık isteği ${toUsername} gönderiliyor...`;
+            try {
+                const res = await fetch('/.netlify/functions/friend-request', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        requester: currentUser.username,
+                        toUsername
+                    })
+                });
+                const data = await res.json();
+                if (!res.ok) {
+                    friendMessage.style.color = 'red';
+                    friendMessage.textContent = data.message;
+                    return false;
+                }
+                friendMessage.style.color = 'green';
+                friendMessage.textContent = data.message;
+                return true;
+            } catch (e) {
+                friendMessage.style.color = 'red';
+                friendMessage.textContent = 'Bir hata oluştu. Lütfen tekrar deneyin.';
+                console.error(e);
+                return false;
+            }
+        }
+
+        function renderSearchResults(users) {
+            searchResults.innerHTML = "";
+            if (users.length === 0) {
+                searchResults.innerHTML = "<li>Sonuç bulunamadı.</li>";
                 return;
             }
-            try {
-                const res = await fetch(`/api/users/search?query=${encodeURIComponent(query)}`);
-                if (!res.ok) throw new Error("Kullanıcı bulunamadı.");
-                const users = await res.json();
-                userSearchResults.innerHTML = "";
-
-                // Bulunan kullanıcıları listele
-                users.forEach(user => {
-                    if (user.username === currentUser.username) return; // Kendini gösterme
-                    const li = document.createElement("li");
-                    li.textContent = user.username;
-                    const addBtn = document.createElement("button");
-                    addBtn.textContent = "Ekle";
-                    addBtn.onclick = () => sendFriendRequest(user.username);
-                    li.appendChild(addBtn);
-                    userSearchResults.appendChild(li);
+            users.forEach(user => {
+                if (user.username.toLowerCase() === currentUser.username.toLowerCase()) return;
+                const li = document.createElement('li');
+                li.textContent = user.username;
+                const btn = document.createElement('button');
+                btn.textContent = "Arkadaş Ekle";
+                btn.addEventListener('click', async () => {
+                    btn.disabled = true;
+                    const ok = await sendFriendRequest(user.username);
+                    if (ok) btn.textContent = "İstek Gönderildi";
+                    btn.disabled = false;
                 });
-            } catch (err) {
-                userSearchResults.innerHTML = `<li>${err.message}</li>`;
-            }
+                li.appendChild(btn);
+                searchResults.appendChild(li);
+            });
         }
 
-        // Arkadaşlık isteği gönderme
-        async function sendFriendRequest(toUsername) {
-            friendMessage.textContent = "Gönderiliyor...";
-            try {
-                const res = await fetch('/api/friends/request', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        requester: currentUser.username,  // Burayı "requester" yaptım, backend ile uyumlu
-                        toUsername: toUsername
-                    }),
-                });
-                if (!res.ok) {
-                    const errData = await res.json();
-                    throw new Error(errData.message || "İstek gönderilemedi");
+        let debounce;
+        friendSearchInput.addEventListener('input', () => {
+            clearTimeout(debounce);
+            debounce = setTimeout(async () => {
+                const q = friendSearchInput.value.trim();
+                if (q.length < 2) {
+                    searchResults.innerHTML = "";
+                    friendMessage.textContent = "";
+                    return;
                 }
-                friendMessage.textContent = `Arkadaşlık isteği ${toUsername} kullanıcısına gönderildi.`;
-            } catch (err) {
-                friendMessage.textContent = `Hata: ${err.message}`;
-            }
-        }
-
-        searchBtn.addEventListener("click", () => {
-            searchUsers(userSearch.value.trim());
-        });
-
-        userSearch.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") {
-                searchUsers(userSearch.value.trim());
-            }
+                const users = await searchUsers(q);
+                renderSearchResults(users);
+            }, 400);
         });
     }
 
-    // Logout fonksiyonu
-    logoutBtn.onclick = () => {
-        localStorage.removeItem("currentUser");
-        window.location.href = "login.html";
-    };
+    function logout() {
+        localStorage.removeItem("username");
+        window.location.href = "index.html";
+    }
 
-    // Sayfa açılırken profil göster
-    showProfile();
+    profileBtn.addEventListener('click', renderProfile);
+    friendsBtn.addEventListener('click', renderFriends);
+    settingsBtn.addEventListener('click', renderSettings);
+    logoutBtn.addEventListener('click', logout);
+    document.getElementById('logoutBtn2').addEventListener('click', logout);
+    document.getElementById('settingsBtn2').addEventListener('click', () => settingsBtn.click());
 
-    // Sidebar butonlarına tıklama olayları
-    profileBtn.onclick = showProfile;
-    settingsBtn.onclick = showSettings;
-    friendsBtn.onclick = showFriends;
+    renderProfile();
 </script>
 
 </body>
